@@ -1,7 +1,7 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         MIME-Charset
-version:      0.04.1
+version:      0.042
 version_from: Charset.pm
 installdirs:  site
 requires:

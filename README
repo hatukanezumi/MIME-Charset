@@ -141,7 +141,7 @@ DESCRIPTION
   MANIPULATING MODULE DEFAULTS
     alias ALIAS [, CHARSET]
         Get/set charset alias for canonical names determined by
-        canonical_charset.
+        "canonical_charset".
 
         If CHARSET is given and isn't false, ALIAS will be assigned as an
         alias of CHARSET. Otherwise, alias won't be changed. In both cases,
@@ -202,8 +202,8 @@ DESCRIPTION
         NOTE: This function in the future releases can accept more optional
         arguments (for example, properties to handle character widths, line
         folding behavior, ...). So format of returned value may probably be
-        changed. Use header_encoding, body_encoding or output_charset to get
-        particular profile.
+        changed. Use "header_encoding", "body_encoding" or "output_charset"
+        to get particular profile.
 
   CONSTANTS
     USE_ENCODE
@@ -221,7 +221,7 @@ DESCRIPTION
         UCM-based encodings, <subchar> will be used.
 
     "FALLBACK"
-        Try "DEFAULT" scheme using *fallback charset* (see fallback). When
+        Try "DEFAULT" scheme using *fallback charset* (see "fallback"). When
         fallback charset is undefined and conversion causes error, code will
         die on error with an error message.
 
@@ -238,6 +238,9 @@ DESCRIPTION
 
     If error handling scheme is not specified or unknown scheme is
     specified, "DEFAULT" will be assumed.
+
+VERSION
+    Consult $VERSION variable.
 
 SEE ALSO
     Multipurpose Internet Mail Extensions (MIME).

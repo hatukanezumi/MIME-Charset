@@ -95,7 +95,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '0.04.1';
+$VERSION = '0.042';
 
 ######## Private Attributes ########
 
@@ -728,6 +728,10 @@ scheme defined by L<Encode> module.
 
 If error handling scheme is not specified or unknown scheme is specified,
 C<"DEFAULT"> will be assumed.
+
+=head1 VERSION
+
+Consult $VERSION variable.
 
 =head1 SEE ALSO
 
