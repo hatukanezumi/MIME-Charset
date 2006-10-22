@@ -77,13 +77,18 @@ DESCRIPTION
         recommended to be used for MIME messages on Internet (if it is known
         by this module).
 
+        When Unicode/multibyte support is disabled (see "USE_ENCODE"), this
+        function will simply return the result of "canonical_charset".
+
   TRANSLATING TEXT DATA
     body_encode STRING, CHARSET [, OPTS]
         Get converted (if needed) data of STRING and recommended
         transfer-encoding of that data for message body. CHARSET is the
         charset by which STRING is encoded.
 
-        OPTS may accept following key-value pairs:
+        OPTS may accept following key-value pairs. NOTE: When
+        Unicode/multibyte support is disabled (see "USE_ENCODE"), conversion
+        will not be performed. So these options do not have any effects.
 
         Replacement => REPLACEMENT
             Specifies error handling scheme. See "ERROR HANDLING".
@@ -112,7 +117,9 @@ DESCRIPTION
         scheme of that data for message headers. CHARSET is the charset by
         which STRING is encoded.
 
-        OPTS may accept following key-value pairs:
+        OPTS may accept following key-value pairs. NOTE: When
+        Unicode/multibyte support is disabled (see "USE_ENCODE"), conversion
+        will not be performed. So these options do not have any effects.
 
         Replacement => REPLACEMENT
             Specifies error handling scheme. See "ERROR HANDLING".
@@ -131,7 +138,7 @@ DESCRIPTION
         be "US-ASCII" if and only if string does not contain any non-ASCII
         bytes.
 
-  MANUPULATING MODULE DEFAULTS
+  MANIPULATING MODULE DEFAULTS
     alias ALIAS [, CHARSET]
         Get/set charset alias for canonical names determined by
         canonical_charset.
@@ -198,6 +205,13 @@ DESCRIPTION
         changed. Use header_encoding, body_encoding or output_charset to get
         particular profile.
 
+  CONSTANTS
+    USE_ENCODE
+        Unicode/multibyte support flag. Non-null string will be set when
+        Unicode and multibyte support is enabled. Currently, this flag will
+        be non-null on Perl 5.8.1 or later and null string on earlier
+        versions of Perl.
+
   ERROR HANDLING
         "body_encode" and "header_encode" accept following "Replacement"
         options:
@@ -219,8 +233,8 @@ DESCRIPTION
     "PERQQ"
     "HTMLCREF"
     "XMLCREF"
-        Use "FB_PERLQQ" in Encode, "FB_HTMLCREF" in Encode or "FB_XMLCREF"
-        in Encode scheme defined by Encode module.
+        Use "FB_PERLQQ", "FB_HTMLCREF" or "FB_XMLCREF" scheme defined by
+        Encode module.
 
     If error handling scheme is not specified or unknown scheme is
     specified, "DEFAULT" will be assumed.
@@ -228,30 +242,9 @@ DESCRIPTION
 SEE ALSO
     Multipurpose Internet Mail Extensions (MIME).
 
-COPYRIGHT
-    Copyright (C) 2006 Hatuka*nezumi - IKEDA Soji <hatuka@nezumi.nu>. All
-    rights reserved.
+AUTHORS
+    Copyright (C) 2006 Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>.
 
-LICENSE
-    This program is free software; you can redistribute it and/or modify it
-    under the terms of either:
-
-    a) the GNU General Public License as published by the Free Software
-    Foundation; either version 2, or (at your option) any later version,
-
-    or
-
-    b) the "Artistic License" which comes with this module.
-
-    This program is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See either the GNU
-    General Public License or the Artistic License for more details.
-
-    You should have received a copy of the Artistic License with this
-    module, in the file ARTISTIC. If not, I'll be glad to provide one.
-
-    You should have received a copy of the GNU General Public License along
-    with this program; if not, write to the Free Software Foundation, Inc.,
-    59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+    All rights reserved. This program is free software; you can redistribute
+    it and/or modify it under the same terms as Perl itself.
 

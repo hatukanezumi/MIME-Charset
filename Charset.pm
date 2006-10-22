@@ -1,6 +1,6 @@
 
 package MIME::Charset;
-use v5.8;
+use 5.005;
 
 =head1 NAME
 
@@ -81,9 +81,21 @@ use Exporter;
 		);
 use Carp qw(croak);
 
-use Encode;
+use constant USE_ENCODE => ($] >= 5.008001)? 'Encode': '';
 
-$VERSION = '0.03';
+my @ENCODE_SUBS = qw(FB_CROAK FB_PERLQQ FB_HTMLCREF FB_XMLCREF
+		     decode encode from_to is_utf8 resolve_alias);
+if (USE_ENCODE) {
+    eval "use ".USE_ENCODE." \@ENCODE_SUBS;";
+} else {
+    require MIME::Charset::_Compat;
+    for my $sub (@ENCODE_SUBS) {
+	no strict "refs";
+	*{$sub} = \&{"MIME::Charset::_Compat::$sub"};
+    }
+}
+
+$VERSION = '0.04';
 
 ######## Private Attributes ########
 
@@ -202,7 +214,7 @@ Get canonical name for charset CHARSET.
 sub canonical_charset($) {
     my $charset = shift;
     return undef unless $charset;
-    my $cset = Encode::resolve_alias($charset) || $charset;
+    my $cset = resolve_alias($charset) || $charset;
     return $CHARSET_ALIASES{uc($cset)} || uc($cset);
 }
 
@@ -227,6 +239,10 @@ sub header_encoding($) {
 Get a charset which is compatible with given CHARSET and is recommended
 to be used for MIME messages on Internet (if it is known by this module).
 
+When Unicode/multibyte support is disabled (see L<"USE_ENCODE">),
+this function will simply
+return the result of L<"canonical_charset">.
+
 =cut
 
 sub output_charset($) {
@@ -243,7 +259,10 @@ Get converted (if needed) data of STRING and recommended transfer-encoding
 of that data for message body.  CHARSET is the charset by which STRING
 is encoded.
 
-OPTS may accept following key-value pairs:
+OPTS may accept following key-value pairs.
+B<NOTE>:
+When Unicode/multibyte support is disabled (see L<"USE_ENCODE">),
+conversion will not be performed.  So these options do not have any effects.
 
 =over 4
 
@@ -274,15 +293,15 @@ sub body_encode {
 
     # Determine transfer-encoding.
     my $enc;
+    my $dummy = $encoded;
     eval {
-	my $dummy = $encoded;
-	&Encode::from_to($dummy, $cset, "US-ASCII", Encode::FB_CROAK);
+	from_to($dummy, $cset, "US-ASCII", FB_CROAK());
     };
-    if (!$@) {
+    if (!$@ and $dummy eq $encoded) {
 	$cset = "US-ASCII";
 	$enc = undef;
     } else {
-	undef $@;
+	$@ = '';
 	$enc = &body_encoding($charset);
     }
 
@@ -350,7 +369,10 @@ Get converted (if needed) data of STRING and recommended encoding scheme of
 that data for message headers.  CHARSET is the charset by which STRING
 is encoded.
 
-OPTS may accept following key-value pairs:
+OPTS may accept following key-value pairs.
+B<NOTE>:
+When Unicode/multibyte support is disabled (see L<"USE_ENCODE">),
+conversion will not be performed.  So these options do not have any effects.
 
 =over 4
 
@@ -385,15 +407,15 @@ sub header_encode {
 
     # Determine encoding scheme.
     my $enc;
+    my $dummy = $encoded;
     eval {
-	my $dummy = $encoded;
-	&Encode::from_to($dummy, $cset, "US-ASCII", Encode::FB_CROAK);
+	from_to($dummy, $cset, "US-ASCII", FB_CROAK());
     };
-    if (!$@) {
+    if (!$@ and $dummy eq $encoded) {
 	$cset = "US-ASCII";
 	$enc = undef;
     } else {
-	undef $@;
+	$@ = '';
 	$enc = &header_encoding($charset);
     }
 
@@ -433,64 +455,62 @@ sub _text_encode {
 
     # Unknown charset.
     return ($s, $charset, $charset)
-	unless Encode::resolve_alias($charset);
+	unless resolve_alias($charset);
 
     # Encode data by output charset if required.  If failed, fallback to
     # fallback charset.
     my $cset = &output_charset($charset);
     my $encoded;
 
-    if (Encode::is_utf8($s)) {
+    if (is_utf8($s)) {
 	if ($replacement =~ /^(?:CROAK|STRICT|FALLBACK)$/) {
 	    eval {
 		$encoded = $s;
-		$encoded = Encode::encode($cset, $encoded, Encode::FB_CROAK);
+		$encoded = encode($cset, $encoded, FB_CROAK());
 	    };
 	    if ($@) {
 		if ($replacement eq "FALLBACK" and $FALLBACK_CHARSET) {
 		    $cset = $FALLBACK_CHARSET;
 		    $encoded = $s;
-		    $encoded = Encode::encode($cset, $encoded);
+		    $encoded = encode($cset, $encoded);
 		    $charset = $cset;
 		} else {
 		    croak $@;
 		}
 	    }
 	} elsif ($replacement eq "PERLQQ") {
-	    $encoded = Encode::encode($cset, $s, Encode::FB_PERLQQ);
+	    $encoded = encode($cset, $s, FB_PERLQQ());
 	} elsif ($replacement eq "HTMLCREF") {
-	    $encoded = Encode::encode($cset, $s, Encode::FB_HTMLCREF);
+	    $encoded = encode($cset, $s, FB_HTMLCREF());
 	} elsif ($replacement eq "XMLCREF") {
-	    $encoded = Encode::encode($cset, $s, Encode::FB_XMLCREF);
+	    $encoded = encode($cset, $s, FB_XMLCREF());
 	} else {
-	    $encoded = Encode::encode($cset, $s);
+	    $encoded = encode($cset, $s);
 	}
     } elsif ($charset ne $cset) {
 	$encoded = $s;
 	if ($replacement =~ /^(?:CROAK|STRICT|FALLBACK)$/) {
 	    eval {
-		&Encode::from_to($encoded, $charset, $cset, Encode::FB_CROAK);
+		from_to($encoded, $charset, $cset, FB_CROAK());
 	    };
 	    if ($@) {
 		if ($replacement eq "FALLBACK" and $FALLBACK_CHARSET) {
 		    $cset = $FALLBACK_CHARSET;
-		    Encode::from_to($encoded, $charset, $cset);
+		    $encoded = $s;
+		    from_to($encoded, $charset, $cset);
 		    $charset = $cset;
 		} else {
 		    croak $@;
 		}
 	    }
         } elsif ($replacement eq "PERLQQ") {
-            Encode::from_to($encoded, $charset, $cset,
-				       Encode::FB_PERLQQ);
+            from_to($encoded, $charset, $cset, FB_PERLQQ());
         } elsif ($replacement eq "HTMLCREF") {
-            Encode::from_to($encoded, $charset, $cset,
-				       Encode::FB_HTMLCREF);
+            from_to($encoded, $charset, $cset, FB_HTMLCREF());
         } elsif ($replacement eq "XMLCREF") {
-            Encode::from_to($encoded, $charset, $cset,
-				       Encode::FB_XMLCREF);
+            from_to($encoded, $charset, $cset, FB_XMLCREF());
         } else {
-            Encode::from_to($encoded, $charset, $cset);
+            from_to($encoded, $charset, $cset);
         }
     } else {
         $encoded = $s;
@@ -500,6 +520,7 @@ sub _text_encode {
 }
 
 sub _detect_7bit_charset($) {
+    return $DEFAULT_CHARSET unless USE_ENCODE;
     my $s = shift;
     return $DEFAULT_CHARSET unless $s;
 
@@ -509,7 +530,7 @@ sub _detect_7bit_charset($) {
 	if (index($s, $seq) >= 0) {
             eval {
 		my $dummy = $s;
-		&Encode::decode($cset, $dummy, Encode::FB_CROAK);
+		decode($cset, $dummy, FB_CROAK());
 	    };
 	    if ($@) {
 		next;
@@ -523,7 +544,7 @@ sub _detect_7bit_charset($) {
     return $DEFAULT_CHARSET;
 }
 
-=head2 MANUPULATING MODULE DEFAULTS
+=head2 MANIPULATING MODULE DEFAULTS
 
 =over 4
 
@@ -570,7 +591,7 @@ sub default(;$) {
 
     if ($charset) {
 	croak "Unknown charset '$charset'"
-	    unless Encode::resolve_alias($charset);
+	    unless resolve_alias($charset);
 	$DEFAULT_CHARSET = $charset;
     }
     return $DEFAULT_CHARSET;
@@ -602,7 +623,7 @@ sub fallback(;$) {
 	$FALLBACK_CHARSET = undef;
     } elsif ($charset) {
 	croak "Unknown charset '$charset'"
-	    unless Encode::resolve_alias($charset);
+	    unless resolve_alias($charset);
 	$FALLBACK_CHARSET = $charset;
     }
     return $FALLBACK_CHARSET;
@@ -649,18 +670,27 @@ sub recommended ($;$;$;$) {
 
     if ($henc or $benc or $cset) {
 	$cset = undef if $charset eq $cset;
-	my @spec = ($henc, $benc, $cset);
+	my @spec = ($henc, $benc, USE_ENCODE? $cset: undef);
 	$CHARSETS{$charset} = \@spec;
 	return @spec;
     } else {
 	my $spec = $CHARSETS{$charset};
 	if ($spec) {
-	    return ($$spec[0], $$spec[1], $$spec[2]);
+	    return ($$spec[0], $$spec[1], USE_ENCODE? $$spec[2]: undef);
 	} else {
 	    return ('S', 'B', undef);
 	}
     }
 }
+
+=head2 CONSTANTS
+
+=item USE_ENCODE
+
+Unicode/multibyte support flag.
+Non-null string will be set when Unicode and multibyte support is enabled.
+Currently, this flag will be non-null on Perl 5.8.1 or later and
+null string on earlier versions of Perl.
 
 =head2 ERROR HANDLING
 
@@ -691,7 +721,7 @@ Synonym is C<"STRICT">.
 
 =item C<"XMLCREF">
 
-Use L<Encode/FB_PERLQQ>, L<Encode/FB_HTMLCREF> or L<Encode/FB_XMLCREF>
+Use C<FB_PERLQQ>, C<FB_HTMLCREF> or C<FB_XMLCREF>
 scheme defined by L<Encode> module.
 
 =back
@@ -703,35 +733,12 @@ C<"DEFAULT"> will be assumed.
 
 Multipurpose Internet Mail Extensions (MIME).
 
-=head1 COPYRIGHT
+=head1 AUTHORS
 
-Copyright (C) 2006 Hatuka*nezumi - IKEDA Soji <F<hatuka@nezumi.nu>>.
-All rights reserved.
+Copyright (C) 2006 Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>.
 
-=head1 LICENSE
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of either:
-
-a) the GNU General Public License as published by the Free Software
-Foundation; either version 2, or (at your option) any later version,
-
-or
-
-b) the "Artistic License" which comes with this module.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See either
-the GNU General Public License or the Artistic License for more details.
-
-You should have received a copy of the Artistic License with this
-module, in the file ARTISTIC.  If not, I'll be glad to provide one.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-USA.
+All rights reserved.  This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
 
 =cut
 

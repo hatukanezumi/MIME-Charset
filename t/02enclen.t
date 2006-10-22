@@ -1,5 +1,8 @@
 use strict;
-use Test::More qw(no_plan);
+use Test;
+
+BEGIN { plan tests => 3 }
+
 use MIME::Charset qw(:trans);
 
 my $s = "Perl\xe8\xa8\x80\xe8\xaa\x9e";
