@@ -1,0 +1,216 @@
+NAME
+    MIME::Charset - Charset Informations for MIME
+
+SYNOPSIS
+        use MIME::Charset qw(:all);
+
+        # Convert text for message body.
+        ($converted, $charset, $encoding) =
+            body_encode(
+                "\xc9\xc2\xc5\xaa\xc0\xde\xc3\xef\xc5\xaa".
+                "\xc7\xd1\xca\xaa\xbd\xd0\xce\xcf\xb4\xef",
+                "euc-jp");
+
+        # Convert text for message header.
+        ($converted, $charset, $encoding) =
+            header_encode(
+               "\xc9\xc2\xc5\xaa\xc0\xde\xc3\xef\xc5\xaa".
+               "\xc7\xd1\xca\xaa\xbd\xd0\xce\xcf\xb4\xef",
+               "euc-jp");
+
+DESCRIPTION
+    MIME::Charset provides informations about character sets used for MIME
+    messages on Internet.
+
+  GETTING INFORMATIONS OF CHARSETS
+    body_encoding CHARSET
+        Get recommended transfer-encoding of CHARSET for message body.
+
+        Returned value is one of "B" (BASE64), "Q" (QUOTED-PRINTABLE) or
+        "undef" (might not be transfer-encoded; either 7BIT or 8BIT). This
+        may not be same as encoding for message header.
+
+    canonical_charset CHARSET
+        Get canonical name for charset CHARSET.
+
+    header_encoding CHARSET
+        Get recommended encoding scheme of CHARSET for message header.
+
+        Returned value is one of "B", "Q", "S" (shorter one of either) or
+        "undef" (might not be encoded). This may not be same as encoding for
+        message body.
+
+    output_charset CHARSET
+        Get a charset compatible with given CHARSET which is recommended to
+        be used for MIME messages on Internet (if it is known by this
+        package).
+
+  TRANSLATING TEXT DATA
+    body_encode STRING, CHARSET [, OPTS]
+        Get converted (if needed) data and recommended transfer-encoding of
+        that data for message body. CHARSET is the charset by which STRING
+        is encoded.
+
+        OPTS may accept following key-value pairs:
+
+        Replacement => REPLACEMENT
+            Specifies error handling scheme. See "ERROR HANDLING".
+
+        Detect7bit => YESNO
+            Try auto-detecting 7-bit charset when CHARSET is not given.
+            Default is "YES".
+
+        3-item list of (*converted string*, *charset for output*,
+        *transfer-encoding*) is returned. "Transfer-encoding" is either
+        "BASE64", "QUOTED-PRINTABLE", "7BIT" or "8BIT". If *charset for
+        output* could not be determined and *converted string* contains
+        non-ASCII byte(s), *charset for output* is "undef" and
+        *transfer-encoding* is "BASE64". *Charset for output* is "US-ASCII"
+        if and only if string doesn't contain any non-ASCII bytes.
+
+    header_encode STRING, CHARSET [, OPTS]
+        Get converted (if needed) data and recommended encoding scheme of
+        that data for message headers. CHARSET is the charset by which
+        STRING is encoded.
+
+        OPTS may accept following key-value pairs:
+
+        Replacement => REPLACEMENT
+            Specifies error handling scheme. See "ERROR HANDLING".
+
+        Detect7bit => YESNO
+            Try auto-detecting 7-bit charset when CHARSET is not given.
+            Default is "YES".
+
+        3-item list of (*converted string*, *charset for output*, *encoding
+        scheme*) is returned. *Encoding scheme* is either "B", "Q" or
+        "undef" (might not be encoded). If *charset for output* could not be
+        determined and *converted string* contains non-ASCII byte(s),
+        *charset for output* is "8BIT" (this is *not* charset name but a
+        special value to represent unencodable data) and *encoding scheme*
+        is "undef" (shouldn't be encoded). *Charset for output* is
+        "US-ASCII" if and only if string doesn't contain any non-ASCII
+        bytes.
+
+  MANUPULATING PACKAGE DEFAULTS
+    alias ALIAS [, CHARSET]
+        Get/set charset alias for canonical names determined by
+        canonical_charset.
+
+        If CHARSET is given and not false, ALIAS is assigned as an alias of
+        CHARSET. Otherwise, alias is not changed. In both cases, this
+        function returns current charset name that ALIAS is assigned.
+
+    default [CHARSET]
+        Get/set default charset.
+
+        Default charset is used by this package when charset context is
+        unknown. Modules using this package are recommended to use this
+        charset when charset context is unknown or implicit default is
+        expected. By default, it is "US-ASCII".
+
+        If CHARSET is given and not false, it is set to default charset.
+        Otherwise, default charset is not changed. In both cases, this
+        function returns current default charset.
+
+        Note: Default charset should not be changed.
+
+    fallback [CHARSET]
+        Get/set fallback charset.
+
+        Fallback charset is used by this package when conversion by given
+        charset is failed and "FALLBACK" error handling scheme is specified.
+        Modules using this package may use this charset as last resort of
+        charset for conversion. By default, it is "UTF-8".
+
+        If CHARSET is given and not false, it is set to fallback charset. If
+        CHARSET is "NONE", fallback charset become undefined. Otherwise,
+        fallback charset is not changed. In any cases, this function returns
+        current fallback charset.
+
+        NOTE: It *is* useful that "US-ASCII" is specified as fallback
+        charset, since result of conversion will be readable without charset
+        informations.
+
+    recommended CHARSET [, HEADERENC, BODYENC [, ENCCHARSET]]
+        Get/set charset profiles.
+
+        If optional arguments are given and any of them are not false,
+        profiles for CHARSET is set by those arguments. Otherwise, profiles
+        won't be changed. In both cases, current profiles for CHARSET are
+        returned as 3-item list of (HEADERENC, BODYENC, ENCCHARSET).
+
+        HEADERENC is recommended encoding scheme for message header. It may
+        be one of "B", "Q", "S" (shorter one of either) or "undef" (might
+        not be encoded).
+
+        BODYENC is recommended transfer-encoding for message body. It may be
+        one of "B", "Q" or "undef" (might not be transfer-encoded).
+
+        ENCCHARSET is compatible with given CHARSET and is recommended to be
+        used for MIME messages on Internet. If conversion is not needed (or
+        this package doesn't know appropriate charset), ENCCHARSET is
+        "undef".
+
+        NOTE: This function in the future releases can accept more optional
+        arguments (for example, properties for line folding). So format of
+        returned value may probably be changed. Use header_encoding,
+        body_encoding or output_charset to get particular profile.
+
+  ERROR HANDLING
+        body_encode and header_encode accept following "Replacement"
+        options:
+
+    "DEFAULT"
+        Put a substitution character in place of a malformed character. For
+        UCM-based encodings, <subchar> will be used.
+
+    "FALLBACK"
+        Try "DEFAULT" scheme using *fallback charset* (see fallback). When
+        fallback charset is undefined and conversion causes error, code will
+        die on error with an error message.
+
+    "CROAK"
+        Code will die on error immediately with an error message. Therefore,
+        you should trap the fatal error with eval{} unless you really want
+        to let it die on error. Synonym is "STRICT".
+
+    "PERQQ"
+    "HTMLCREF"
+    "XMLCREF"
+        Use FB_PERLQQ, FB_HTMLCREF or FB_XMLCREF scheme defined by Encode
+        module.
+
+    If error handling scheme is not specified or unknown scheme is
+    specified, "DEFAULT" will be assumed.
+
+SEE ALSO
+    Multipurpose Internet Mail Extensions (MIME).
+
+COPYRIGHT
+    Copyright (C) 2006 Hatuka*nezumi - IKEDA Soji <hatuka@nezumi.nu>. All
+    rights reserved.
+
+LICENSE
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of either:
+
+    a) the GNU General Public License as published by the Free Software
+    Foundation; either version 1, or (at your option) any later version,
+
+    or
+
+    b) the "Artistic License" which comes with this module.
+
+    This program is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See either the GNU
+    General Public License or the Artistic License for more details.
+
+    You should have received a copy of the Artistic License with this
+    module, in the file ARTISTIC. If not, I'll be glad to provide one.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+
