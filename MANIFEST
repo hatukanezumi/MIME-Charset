@@ -1,9 +1,11 @@
 ARTISTIC
 Changes
 Charset.pm
-COPYING
+GPL
 Makefile.PL
 MANIFEST			This list of files
-META.yml			Module meta-data (added by MakeMaker)
+META.yml
 README
 t/01encode.t
+t/02enclen.t
+t/03info.t

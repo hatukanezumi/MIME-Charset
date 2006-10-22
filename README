@@ -2,33 +2,65 @@ NAME
     MIME::Charset - Charset Informations for MIME
 
 SYNOPSIS
-        use MIME::Charset qw(:all);
+    Getting charset informations:
 
-        # Convert text for message body.
-        ($converted, $charset, $encoding) =
-            body_encode(
-                "\xc9\xc2\xc5\xaa\xc0\xde\xc3\xef\xc5\xaa".
-                "\xc7\xd1\xca\xaa\xbd\xd0\xce\xcf\xb4\xef",
-                "euc-jp");
+        use MIME::Charset qw(:info);
 
-        # Convert text for message header.
-        ($converted, $charset, $encoding) =
+        $benc = body_encoding("iso-8859-2"); # "Q"
+        $cset = canonical_charset("ANSI X3.4-1968"); # "US-ASCII"
+        $henc = header_encoding("utf-8"); # "S"
+        $cset = output_charset("shift_jis"); # "ISO-2022-JP"
+
+    Translating text data:
+
+        use MIME::Charset qw(:trans);
+
+        ($text, $charset, $encoding) =
             header_encode(
                "\xc9\xc2\xc5\xaa\xc0\xde\xc3\xef\xc5\xaa".
                "\xc7\xd1\xca\xaa\xbd\xd0\xce\xcf\xb4\xef",
                "euc-jp");
+        # ...returns (<converted>, "ISO-2022-JP", "B");
+
+        ($text, $charset, $encoding) =
+            body_encode(
+                "Collectioneur path\xe9tiquement ".
+                "\xe9clectique de d\xe9chets",
+                "latin1");
+        # ...returns (<original>, "ISO-8859-1", "QUOTED-PRINTABLE");
+
+        $len = encoded_header_len(
+            "Perl\xe8\xa8\x80\xe8\xaa\x9e", "b", "utf-8"); # 28
+
+    Manipulating module defaults:
+
+        use MIME::Charset;
+
+        MIME::Charset::alias("csEUCKR", "euc-kr");
+        MIME::Charset::default("iso-8859-1");
+        MIME::Charset::fallback("us-ascii");
 
 DESCRIPTION
     MIME::Charset provides informations about character sets used for MIME
     messages on Internet.
 
+  DEFINITIONS
+    The charset is ``character set'' used in MIME to refer to a method of
+    converting a sequence of octets into a sequence of characters. It
+    includes both concepts of ``coded character set'' (CCS) and ``character
+    encoding scheme'' (CES) of ISO/IEC.
+
+    The encoding is that used in MIME to refer to a method of representing a
+    body part or a header body as sequence(s) of printable US-ASCII
+    characters.
+
   GETTING INFORMATIONS OF CHARSETS
     body_encoding CHARSET
         Get recommended transfer-encoding of CHARSET for message body.
 
-        Returned value is one of "B" (BASE64), "Q" (QUOTED-PRINTABLE) or
-        "undef" (might not be transfer-encoded; either 7BIT or 8BIT). This
-        may not be same as encoding for message header.
+        Returned value will be one of "B" (BASE64), "Q" (QUOTED-PRINTABLE)
+        or "undef" (might not be transfer-encoded; either 7BIT or 8BIT).
+        This may not be same as encoding for message header.
 
     canonical_charset CHARSET
         Get canonical name for charset CHARSET.
@@ -36,20 +68,20 @@ DESCRIPTION
     header_encoding CHARSET
         Get recommended encoding scheme of CHARSET for message header.
 
-        Returned value is one of "B", "Q", "S" (shorter one of either) or
-        "undef" (might not be encoded). This may not be same as encoding for
-        message body.
+        Returned value will be one of "B", "Q", "S" (shorter one of either)
+        or "undef" (might not be encoded). This may not be same as encoding
+        for message body.
 
     output_charset CHARSET
-        Get a charset compatible with given CHARSET which is recommended to
-        be used for MIME messages on Internet (if it is known by this
-        package).
+        Get a charset which is compatible with given CHARSET and is
+        recommended to be used for MIME messages on Internet (if it is known
+        by this module).
 
   TRANSLATING TEXT DATA
     body_encode STRING, CHARSET [, OPTS]
-        Get converted (if needed) data and recommended transfer-encoding of
-        that data for message body. CHARSET is the charset by which STRING
-        is encoded.
+        Get converted (if needed) data of STRING and recommended
+        transfer-encoding of that data for message body. CHARSET is the
+        charset by which STRING is encoded.
 
         OPTS may accept following key-value pairs:
 
@@ -61,17 +93,24 @@ DESCRIPTION
             Default is "YES".
 
         3-item list of (*converted string*, *charset for output*,
-        *transfer-encoding*) is returned. "Transfer-encoding" is either
-        "BASE64", "QUOTED-PRINTABLE", "7BIT" or "8BIT". If *charset for
-        output* could not be determined and *converted string* contains
-        non-ASCII byte(s), *charset for output* is "undef" and
-        *transfer-encoding* is "BASE64". *Charset for output* is "US-ASCII"
-        if and only if string doesn't contain any non-ASCII bytes.
+        *transfer-encoding*) will be returned. *Transfer-encoding* will be
+        either "BASE64", "QUOTED-PRINTABLE", "7BIT" or "8BIT". If *charset
+        for output* could not be determined and *converted string* contains
+        non-ASCII byte(s), *charset for output* will be "undef" and
+        *transfer-encoding* will be "BASE64". *Charset for output* will be
+        "US-ASCII" if and only if string does not contain any non-ASCII
+        bytes.
+
+    encoded_header_len STRING, ENCODING, CHARSET
+        Get length of encoded STRING for message header (without folding).
+
+        ENCODING may be one of "B", "Q" or "S" (shorter one of either "B" or
+        "Q").
 
     header_encode STRING, CHARSET [, OPTS]
-        Get converted (if needed) data and recommended encoding scheme of
-        that data for message headers. CHARSET is the charset by which
-        STRING is encoded.
+        Get converted (if needed) data of STRING and recommended encoding
+        scheme of that data for message headers. CHARSET is the charset by
+        which STRING is encoded.
 
         OPTS may accept following key-value pairs:
 
@@ -83,50 +122,50 @@ DESCRIPTION
             Default is "YES".
 
         3-item list of (*converted string*, *charset for output*, *encoding
-        scheme*) is returned. *Encoding scheme* is either "B", "Q" or
-        "undef" (might not be encoded). If *charset for output* could not be
-        determined and *converted string* contains non-ASCII byte(s),
-        *charset for output* is "8BIT" (this is *not* charset name but a
-        special value to represent unencodable data) and *encoding scheme*
-        is "undef" (shouldn't be encoded). *Charset for output* is
-        "US-ASCII" if and only if string doesn't contain any non-ASCII
+        scheme*) will be returned. *Encoding scheme* will be either "B", "Q"
+        or "undef" (might not be encoded). If *charset for output* could not
+        be determined and *converted string* contains non-ASCII byte(s),
+        *charset for output* will be "8BIT" (this is *not* charset name but
+        a special value to represent unencodable data) and *encoding scheme*
+        will be "undef" (should not be encoded). *Charset for output* will
+        be "US-ASCII" if and only if string does not contain any non-ASCII
         bytes.
 
-  MANUPULATING PACKAGE DEFAULTS
+  MANUPULATING MODULE DEFAULTS
     alias ALIAS [, CHARSET]
         Get/set charset alias for canonical names determined by
         canonical_charset.
 
-        If CHARSET is given and not false, ALIAS is assigned as an alias of
-        CHARSET. Otherwise, alias is not changed. In both cases, this
-        function returns current charset name that ALIAS is assigned.
+        If CHARSET is given and isn't false, ALIAS will be assigned as an
+        alias of CHARSET. Otherwise, alias won't be changed. In both cases,
+        current charset name that ALIAS is assigned will be returned.
 
     default [CHARSET]
         Get/set default charset.
 
-        Default charset is used by this package when charset context is
-        unknown. Modules using this package are recommended to use this
+        Default charset is used by this module when charset context is
+        unknown. Modules using this module are recommended to use this
         charset when charset context is unknown or implicit default is
         expected. By default, it is "US-ASCII".
 
-        If CHARSET is given and not false, it is set to default charset.
-        Otherwise, default charset is not changed. In both cases, this
-        function returns current default charset.
+        If CHARSET is given and isn't false, it will be set to default
+        charset. Otherwise, default charset won't be changed. In both cases,
+        current default charset will be returned.
 
-        Note: Default charset should not be changed.
+        NOTE: Default charset *should not* be changed.
 
     fallback [CHARSET]
         Get/set fallback charset.
 
-        Fallback charset is used by this package when conversion by given
+        Fallback charset is used by this module when conversion by given
         charset is failed and "FALLBACK" error handling scheme is specified.
-        Modules using this package may use this charset as last resort of
+        Modules using this module may use this charset as last resort of
         charset for conversion. By default, it is "UTF-8".
 
-        If CHARSET is given and not false, it is set to fallback charset. If
-        CHARSET is "NONE", fallback charset become undefined. Otherwise,
-        fallback charset is not changed. In any cases, this function returns
-        current fallback charset.
+        If CHARSET is given and isn't false, it will be set to fallback
+        charset. If CHARSET is "NONE", fallback charset will be undefined.
+        Otherwise, fallback charset won't be changed. In any cases, current
+        fallback charset will be returned.
 
         NOTE: It *is* useful that "US-ASCII" is specified as fallback
         charset, since result of conversion will be readable without charset
@@ -136,9 +175,10 @@ DESCRIPTION
         Get/set charset profiles.
 
         If optional arguments are given and any of them are not false,
-        profiles for CHARSET is set by those arguments. Otherwise, profiles
-        won't be changed. In both cases, current profiles for CHARSET are
-        returned as 3-item list of (HEADERENC, BODYENC, ENCCHARSET).
+        profiles for CHARSET will be set by those arguments. Otherwise,
+        profiles won't be changed. In both cases, current profiles for
+        CHARSET will be returned as 3-item list of (HEADERENC, BODYENC,
+        ENCCHARSET).
 
         HEADERENC is recommended encoding scheme for message header. It may
         be one of "B", "Q", "S" (shorter one of either) or "undef" (might
@@ -147,18 +187,19 @@ DESCRIPTION
         BODYENC is recommended transfer-encoding for message body. It may be
         one of "B", "Q" or "undef" (might not be transfer-encoded).
 
-        ENCCHARSET is compatible with given CHARSET and is recommended to be
-        used for MIME messages on Internet. If conversion is not needed (or
-        this package doesn't know appropriate charset), ENCCHARSET is
-        "undef".
+        ENCCHARSET is a charset which is compatible with given CHARSET and
+        is recommended to be used for MIME messages on Internet. If
+        conversion is not needed (or this module doesn't know appropriate
+        charset), ENCCHARSET is "undef".
 
         NOTE: This function in the future releases can accept more optional
-        arguments (for example, properties for line folding). So format of
-        returned value may probably be changed. Use header_encoding,
-        body_encoding or output_charset to get particular profile.
+        arguments (for example, properties to handle character widths, line
+        folding behavior, ...). So format of returned value may probably be
+        changed. Use header_encoding, body_encoding or output_charset to get
+        particular profile.
 
   ERROR HANDLING
-        body_encode and header_encode accept following "Replacement"
+        "body_encode" and "header_encode" accept following "Replacement"
         options:
 
     "DEFAULT"
@@ -178,8 +219,8 @@ DESCRIPTION
     "PERQQ"
     "HTMLCREF"
     "XMLCREF"
-        Use FB_PERLQQ, FB_HTMLCREF or FB_XMLCREF scheme defined by Encode
-        module.
+        Use "FB_PERLQQ" in Encode, "FB_HTMLCREF" in Encode or "FB_XMLCREF"
+        in Encode scheme defined by Encode module.
 
     If error handling scheme is not specified or unknown scheme is
     specified, "DEFAULT" will be assumed.
@@ -196,7 +237,7 @@ LICENSE
     under the terms of either:
 
     a) the GNU General Public License as published by the Free Software
-    Foundation; either version 1, or (at your option) any later version,
+    Foundation; either version 2, or (at your option) any later version,
 
     or
 

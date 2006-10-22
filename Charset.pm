@@ -35,7 +35,10 @@ Translating text data:
             "latin1");
     # ...returns (<original>, "ISO-8859-1", "QUOTED-PRINTABLE");
 
-Manipulating package defaults:
+    $len = encoded_header_len(
+        "Perl\xe8\xa8\x80\xe8\xaa\x9e", "b", "utf-8"); # 28
+
+Manipulating module defaults:
 
     use MIME::Charset;
 
@@ -48,6 +51,17 @@ Manipulating package defaults:
 MIME::Charset provides informations about character sets used for
 MIME messages on Internet.
 
+=head2 DEFINITIONS
+
+The B<charset> is ``character set'' used in MIME to refer to a
+method of converting a sequence of octets into a sequence of characters.
+It includes both concepts of ``coded character set'' (CCS) and
+``character encoding scheme'' (CES) of ISO/IEC.
+
+The B<encoding> is that used in MIME to refer to a method of representing
+a body part or a header body as sequence(s) of printable US-ASCII
+characters.
+
 =over 4
 
 =cut
@@ -56,26 +70,27 @@ use strict;
 use vars qw(@ISA $VERSION @EXPORT @EXPORT_OK %EXPORT_TAGS);
 use Exporter;
 @ISA = qw(Exporter);
-@EXPORT = qw(body_encoding canonical_charset header_encoding
-		   output_charset body_encode header_encode);
+@EXPORT = qw(body_encoding canonical_charset header_encoding output_charset
+	     body_encode encoded_header_len header_encode);
 @EXPORT_OK = qw(alias default fallback recommended);
 %EXPORT_TAGS = (
 		"info" => [qw(body_encoding header_encoding
 			      canonical_charset output_charset)],
-		"trans" =>[ qw(body_encode header_encode)],
-);
+		"trans" =>[ qw(body_encode encoded_header_len
+			       header_encode)],
+		);
 use Carp qw(croak);
 
 use Encode;
 
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 ######## Private Attributes ########
 
 my $DEFAULT_CHARSET = 'US-ASCII';
 my $FALLBACK_CHARSET = 'UTF-8';
 
-# This table is borrwed from Python email package.
+# This table was borrwed from Python email package.
 
 my %CHARSETS = (# input		    header enc body enc output conv
 		'ISO-8859-1' =>		['Q',	'Q',	undef],
@@ -166,7 +181,7 @@ my $ISO2022RE = qr{
 
 Get recommended transfer-encoding of CHARSET for message body.
 
-Returned value is one of C<"B"> (BASE64), C<"Q"> (QUOTED-PRINTABLE) or
+Returned value will be one of C<"B"> (BASE64), C<"Q"> (QUOTED-PRINTABLE) or
 C<undef> (might not be transfer-encoded; either 7BIT or 8BIT).  This may
 not be same as encoding for message header.
 
@@ -195,7 +210,7 @@ sub canonical_charset($) {
 
 Get recommended encoding scheme of CHARSET for message header.
 
-Returned value is one of C<"B">, C<"Q">, C<"S"> (shorter one of either)
+Returned value will be one of C<"B">, C<"Q">, C<"S"> (shorter one of either)
 or C<undef> (might not be encoded).  This may not be same as encoding
 for message body.
 
@@ -209,8 +224,8 @@ sub header_encoding($) {
 
 =item output_charset CHARSET
 
-Get a charset compatible with given CHARSET which is recommended to be
-used for MIME messages on Internet (if it is known by this package).
+Get a charset which is compatible with given CHARSET and is recommended
+to be used for MIME messages on Internet (if it is known by this module).
 
 =cut
 
@@ -224,8 +239,8 @@ sub output_charset($) {
 
 =item body_encode STRING, CHARSET [, OPTS]
 
-Get converted (if needed) data and recommended transfer-encoding of
-that data for message body.  CHARSET is the charset by which STRING
+Get converted (if needed) data of STRING and recommended transfer-encoding
+of that data for message body.  CHARSET is the charset by which STRING
 is encoded.
 
 OPTS may accept following key-value pairs:
@@ -234,7 +249,7 @@ OPTS may accept following key-value pairs:
 
 =item Replacement => REPLACEMENT
 
-Specifies error handling scheme. See L<"ERROR HANDLING">.
+Specifies error handling scheme.  See L<"ERROR HANDLING">.
 
 =item Detect7bit => YESNO
 
@@ -244,20 +259,33 @@ Default is C<"YES">.
 =back
 
 3-item list of (I<converted string>, I<charset for output>,
-I<transfer-encoding>) is returned.
-I<Transfer-encoding> is either C<"BASE64">, C<"QUOTED-PRINTABLE">,
+I<transfer-encoding>) will be returned.
+I<Transfer-encoding> will be either C<"BASE64">, C<"QUOTED-PRINTABLE">,
 C<"7BIT"> or C<"8BIT">.  If I<charset for output> could not be determined
-and I<converted string> contains non-ASCII byte(s), I<charset for output> is
-C<undef> and I<transfer-encoding> is C<"BASE64">.  I<Charset for output> is
-C<"US-ASCII"> if and only if string does not contain any non-ASCII bytes.
+and I<converted string> contains non-ASCII byte(s), I<charset for output> will
+be C<undef> and I<transfer-encoding> will be C<"BASE64">.
+I<Charset for output> will be C<"US-ASCII"> if and only if string does not
+contain any non-ASCII bytes.
 
 =cut
 
 sub body_encode {
-    my ($encoded, $charset, $cset) = &text_encode(@_);
+    my ($encoded, $charset, $cset) = &_text_encode(@_);
 
     # Determine transfer-encoding.
-    my $enc = &body_encoding($charset);
+    my $enc;
+    eval {
+	my $dummy = $encoded;
+	&Encode::from_to($dummy, $cset, "US-ASCII", Encode::FB_CROAK);
+    };
+    if (!$@) {
+	$cset = "US-ASCII";
+	$enc = undef;
+    } else {
+	undef $@;
+	$enc = &body_encoding($charset);
+    }
+
     if (!$enc and $encoded !~ /\x00/) {	# Eliminate hostile NUL character.
         if ($encoded =~ $NONASCIIRE) {	# String contains 8bit char(s).
             $enc = '8BIT';
@@ -277,9 +305,48 @@ sub body_encode {
     return ($encoded, $cset, $enc);
 }
 
+=item encoded_header_len STRING, ENCODING, CHARSET
+
+Get length of encoded STRING for message header
+(without folding).
+
+ENCODING may be one of C<"B">, C<"Q"> or C<"S"> (shorter
+one of either C<"B"> or C<"Q">).
+
+=cut
+
+sub encoded_header_len($$$) {
+    my $s = shift;
+    my $encoding = uc(shift);
+    my $charset  = shift;
+
+    my $enclen;
+    if ($encoding eq 'Q') {
+        $enclen = _enclen_Q($s);
+    } elsif ($encoding eq "S") {
+        my ($b, $q) = (_enclen_B($s), _enclen_Q($s));
+	$enclen = ($b < $q)? $b: $q;
+    } else { # "B"
+        $enclen = _enclen_B($s);
+    }
+
+    length($charset)+$enclen+7;
+}
+
+sub _enclen_B($) {
+    int((length(shift) + 2) / 3) * 4;
+}
+
+sub _enclen_Q($) {
+    my $s = shift;
+    my @o;
+    @o = ($s =~ /(\?|=|_|[^ \x21-\x7e])/gos);
+    length($s) + scalar(@o) * 2;
+}
+
 =item header_encode STRING, CHARSET [, OPTS]
 
-Get converted (if needed) data and recommended encoding scheme of
+Get converted (if needed) data of STRING and recommended encoding scheme of
 that data for message headers.  CHARSET is the charset by which STRING
 is encoded.
 
@@ -289,7 +356,7 @@ OPTS may accept following key-value pairs:
 
 =item Replacement => REPLACEMENT
 
-Specifies error handling scheme. See L<"ERROR HANDLING">.
+Specifies error handling scheme.  See L<"ERROR HANDLING">.
 
 =item Detect7bit => YESNO
 
@@ -299,31 +366,44 @@ Default is C<"YES">.
 =back
 
 3-item list of (I<converted string>, I<charset for output>,
-I<encoding scheme>) is returned.  I<Encoding scheme> is either C<"B">,
-C<"Q"> or C<undef> (might not be encoded).  If I<charset for output>
-could not be determined and I<converted string> contains non-ASCII byte(s),
-I<charset for output> is C<"8BIT"> (this is I<not> charset name but a
-special value to represent unencodable data) and I<encoding scheme> is
-C<undef> (shouldn't be encoded).  I<Charset for output> is C<"US-ASCII">
-if and only if string doesn't contain any non-ASCII bytes.
+I<encoding scheme>) will be returned.  I<Encoding scheme> will be
+either C<"B">, C<"Q"> or C<undef> (might not be encoded).
+If I<charset for output> could not be determined and I<converted string>
+contains non-ASCII byte(s), I<charset for output> will be C<"8BIT">
+(this is I<not> charset name but a special value to represent unencodable
+data) and I<encoding scheme> will be C<undef> (should not be encoded).
+I<Charset for output> will be C<"US-ASCII"> if and only if string does not
+contain any non-ASCII bytes.
 
 =back
 
 =cut
 
 sub header_encode {
-    my ($encoded, $charset, $cset) = &text_encode(@_);
+    my ($encoded, $charset, $cset) = &_text_encode(@_);
     return ($encoded, '8BIT', undef) unless $cset;
 
     # Determine encoding scheme.
-    my $enc = &header_encoding($charset);
+    my $enc;
+    eval {
+	my $dummy = $encoded;
+	&Encode::from_to($dummy, $cset, "US-ASCII", Encode::FB_CROAK);
+    };
+    if (!$@) {
+	$cset = "US-ASCII";
+	$enc = undef;
+    } else {
+	undef $@;
+	$enc = &header_encoding($charset);
+    }
+
     if (!$enc and $encoded !~ $NONASCIIRE) {
 	unless ($cset =~ $ISO2022RE) {	# ISO-2022-* outputs are 7BIT.
             $cset = 'US-ASCII';
         }
     } elsif ($enc eq 'S') {
-	if (length(Encode::encode("MIME-B", $encoded)) <
-	    length(Encode::encode("MIME-Q", $encoded))) {
+	if (&encoded_header_len($encoded, "B", $cset) <
+	    &encoded_header_len($encoded, "Q", $cset)) {
 	    $enc = 'B';
 	} else {
 	    $enc = 'Q';
@@ -334,7 +414,7 @@ sub header_encode {
     return ($encoded, $cset, $enc);
 }
 
-sub text_encode {
+sub _text_encode {
     my $s = shift;
     my $charset = &canonical_charset(shift);
     my %params = @_;
@@ -345,7 +425,7 @@ sub text_encode {
 	if ($s =~ $NONASCIIRE) {
 	    return ($s, undef, undef);
 	} elsif ($detect7bit ne "NO") {
-	    $charset = &detect_7bit_charset($s);
+	    $charset = &_detect_7bit_charset($s);
 	} else {
 	    $charset = $DEFAULT_CHARSET;
 	} 
@@ -363,23 +443,25 @@ sub text_encode {
     if (Encode::is_utf8($s)) {
 	if ($replacement =~ /^(?:CROAK|STRICT|FALLBACK)$/) {
 	    eval {
-		$encoded = Encode::encode($cset, $s, $Encode::FB_CROAK);
+		$encoded = $s;
+		$encoded = Encode::encode($cset, $encoded, Encode::FB_CROAK);
 	    };
 	    if ($@) {
 		if ($replacement eq "FALLBACK" and $FALLBACK_CHARSET) {
 		    $cset = $FALLBACK_CHARSET;
-		    $encoded = Encode::encode($cset, $s);
+		    $encoded = $s;
+		    $encoded = Encode::encode($cset, $encoded);
 		    $charset = $cset;
 		} else {
 		    croak $@;
 		}
 	    }
 	} elsif ($replacement eq "PERLQQ") {
-	    $encoded = Encode::encode($cset, $s, $Encode::FB_PERLQQ);
+	    $encoded = Encode::encode($cset, $s, Encode::FB_PERLQQ);
 	} elsif ($replacement eq "HTMLCREF") {
-	    $encoded = Encode::encode($cset, $s, $Encode::FB_HTMLCREF);
+	    $encoded = Encode::encode($cset, $s, Encode::FB_HTMLCREF);
 	} elsif ($replacement eq "XMLCREF") {
-	    $encoded = Encode::encode($cset, $s, $Encode::FB_XMLCREF);
+	    $encoded = Encode::encode($cset, $s, Encode::FB_XMLCREF);
 	} else {
 	    $encoded = Encode::encode($cset, $s);
 	}
@@ -387,7 +469,7 @@ sub text_encode {
 	$encoded = $s;
 	if ($replacement =~ /^(?:CROAK|STRICT|FALLBACK)$/) {
 	    eval {
-		&Encode::from_to($encoded, $charset, $cset, $Encode::FB_CROAK);
+		&Encode::from_to($encoded, $charset, $cset, Encode::FB_CROAK);
 	    };
 	    if ($@) {
 		if ($replacement eq "FALLBACK" and $FALLBACK_CHARSET) {
@@ -400,13 +482,13 @@ sub text_encode {
 	    }
         } elsif ($replacement eq "PERLQQ") {
             Encode::from_to($encoded, $charset, $cset,
-				       $Encode::FB_PERLQQ);
+				       Encode::FB_PERLQQ);
         } elsif ($replacement eq "HTMLCREF") {
             Encode::from_to($encoded, $charset, $cset,
-				       $Encode::FB_HTMLCREF);
+				       Encode::FB_HTMLCREF);
         } elsif ($replacement eq "XMLCREF") {
             Encode::from_to($encoded, $charset, $cset,
-				       $Encode::FB_XMLCREF);
+				       Encode::FB_XMLCREF);
         } else {
             Encode::from_to($encoded, $charset, $cset);
         }
@@ -417,7 +499,7 @@ sub text_encode {
     return ($encoded, $charset, $cset);
 }
 
-sub detect_7bit_charset($) {
+sub _detect_7bit_charset($) {
     my $s = shift;
     return $DEFAULT_CHARSET unless $s;
 
@@ -426,7 +508,8 @@ sub detect_7bit_charset($) {
 	my ($seq, $cset) = @$_;
 	if (index($s, $seq) >= 0) {
             eval {
-		my $dummy = Encode::decode($cset, $s, $Encode::FB_CROAK);
+		my $dummy = $s;
+		&Encode::decode($cset, $dummy, Encode::FB_CROAK);
 	    };
 	    if ($@) {
 		next;
@@ -440,7 +523,7 @@ sub detect_7bit_charset($) {
     return $DEFAULT_CHARSET;
 }
 
-=head2 MANUPULATING PACKAGE DEFAULTS
+=head2 MANUPULATING MODULE DEFAULTS
 
 =over 4
 
@@ -449,9 +532,9 @@ sub detect_7bit_charset($) {
 Get/set charset alias for canonical names determined by
 L<canonical_charset>.
 
-If CHARSET is given and not false, ALIAS is assigned as an alias of
-CHARSET.  Otherwise, alias is not changed.  In both cases, this
-function returns current charset name that ALIAS is assigned.
+If CHARSET is given and isn't false, ALIAS will be assigned as an alias of
+CHARSET.  Otherwise, alias won't be changed.  In both cases,
+current charset name that ALIAS is assigned will be returned.
 
 =cut
 
@@ -469,14 +552,14 @@ sub alias ($;$) {
 
 Get/set default charset.
 
-B<Default charset> is used by this package when charset context is
-unknown.  Modules using this package are recommended to use this
+B<Default charset> is used by this module when charset context is
+unknown.  Modules using this module are recommended to use this
 charset when charset context is unknown or implicit default is
 expected.  By default, it is C<"US-ASCII">.
 
-If CHARSET is given and not false, it is set to default charset.
-Otherwise, default charset is not changed.  In both cases, this
-function returns current default charset.
+If CHARSET is given and isn't false, it will be set to default charset.
+Otherwise, default charset won't be changed.  In both cases,
+current default charset will be returned.
 
 B<NOTE>: Default charset I<should not> be changed.
 
@@ -497,15 +580,15 @@ sub default(;$) {
 
 Get/set fallback charset.
 
-B<Fallback charset> is used by this package when conversion by given
+B<Fallback charset> is used by this module when conversion by given
 charset is failed and C<"FALLBACK"> error handling scheme is specified.
-Modules using this package may use this charset as last resort of charset
+Modules using this module may use this charset as last resort of charset
 for conversion.  By default, it is C<"UTF-8">.
 
-If CHARSET is given and not false, it is set to fallback charset.
-If CHARSET is C<"NONE">, fallback charset become undefined.
-Otherwise, fallback charset is not changed.  In any cases, this
-function returns current fallback charset.
+If CHARSET is given and isn't false, it will be set to fallback charset.
+If CHARSET is C<"NONE">, fallback charset will be undefined.
+Otherwise, fallback charset won't be changed.  In any cases,
+current fallback charset will be returned.
 
 B<NOTE>: It I<is> useful that C<"US-ASCII"> is specified as fallback charset,
 since result of conversion will be readable without charset informations.
@@ -530,8 +613,8 @@ sub fallback(;$) {
 Get/set charset profiles.
 
 If optional arguments are given and any of them are not false, profiles
-for CHARSET is set by those arguments.  Otherwise, profiles
-won't be changed.  In both cases, current profiles for CHARSET are
+for CHARSET will be set by those arguments.  Otherwise, profiles
+won't be changed.  In both cases, current profiles for CHARSET will be
 returned as 3-item list of (HEADERENC, BODYENC, ENCCHARSET).
 
 HEADERENC is recommended encoding scheme for message header.
@@ -541,10 +624,10 @@ C<undef> (might not be encoded).
 BODYENC is recommended transfer-encoding for message body.  It may be
 one of C<"B">, C<"Q"> or C<undef> (might not be transfer-encoded).
 
-ENCCHARSET is compatible with given CHARSET and is recommended to be
-used for MIME messages on Internet.  If conversion is not needed
-(or this package doesn't know appropriate charset), ENCCHARSET is
-C<undef>.
+ENCCHARSET is a charset which is compatible with given CHARSET and
+is recommended to be used for MIME messages on Internet.
+If conversion is not needed (or this module doesn't know appropriate
+charset), ENCCHARSET is C<undef>.
 
 B<NOTE>: This function in the future releases can accept more optional
 arguments (for example, properties to handle character widths, line folding
@@ -581,7 +664,7 @@ sub recommended ($;$;$;$) {
 
 =head2 ERROR HANDLING
 
-L<body_encode> and L<header_encode> accept following C<Replacement>
+L<"body_encode"> and L<"header_encode"> accept following C<Replacement>
 options:
 
 =item C<"DEFAULT">

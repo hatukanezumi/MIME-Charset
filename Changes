@@ -1,11 +1,20 @@
-2006-10-06	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
-	
-	* version 0.01.  Initial CPAN upload.
+2006-10-09	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 0.03.
+	* New function: encoded_header_len.
+	* body_encode()/header_encode(): fallback to US-ASCII if possible.
+	* Documentation: definitions of ``charset'' & ``encoding''.
+	* Typos on Encode::FB_*.
+	* More test cases.
 
 2006-10-07	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
-	* version 0.02.
+	* Release 0.02.
 	* Fix exports.
 	* Typo on GPL version.
 	* Added synopsis.
 	* Other typos.
+
+2006-10-06	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+	
+	* Release 0.01.  Initial CPAN upload.
