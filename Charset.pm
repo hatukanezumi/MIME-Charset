@@ -95,7 +95,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '0.04';
+$VERSION = '0.04.1';
 
 ######## Private Attributes ########
 
@@ -462,7 +462,7 @@ sub _text_encode {
     my $cset = &output_charset($charset);
     my $encoded;
 
-    if (is_utf8($s)) {
+    if (is_utf8($s) or $s =~ /[^\x00-\xFF]/) {
 	if ($replacement =~ /^(?:CROAK|STRICT|FALLBACK)$/) {
 	    eval {
 		$encoded = $s;
@@ -551,7 +551,7 @@ sub _detect_7bit_charset($) {
 =item alias ALIAS [, CHARSET]
 
 Get/set charset alias for canonical names determined by
-L<canonical_charset>.
+L<"canonical_charset">.
 
 If CHARSET is given and isn't false, ALIAS will be assigned as an alias of
 CHARSET.  Otherwise, alias won't be changed.  In both cases,
@@ -653,7 +653,7 @@ charset), ENCCHARSET is C<undef>.
 B<NOTE>: This function in the future releases can accept more optional
 arguments (for example, properties to handle character widths, line folding
 behavior, ...).  So format of returned value may probably be changed.
-Use L<header_encoding>, L<body_encoding> or L<output_charset> to get
+Use L<"header_encoding">, L<"body_encoding"> or L<"output_charset"> to get
 particular profile.
 
 =cut
@@ -704,7 +704,7 @@ For UCM-based encodings, <subchar> will be used.
 
 =item C<"FALLBACK">
 
-Try C<"DEFAULT"> scheme using I<fallback charset> (see L<fallback>).
+Try C<"DEFAULT"> scheme using I<fallback charset> (see L<"fallback">).
 When fallback charset is undefined and conversion causes error,
 code will die on error with an error message.
 
