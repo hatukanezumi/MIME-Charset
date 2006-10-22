@@ -1,3 +1,11 @@
 2006-10-06	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 	
 	* version 0.01.  Initial CPAN upload.
+
+2006-10-07	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* version 0.02.
+	* Fix exports.
+	* Typo on GPL version.
+	* Added synopsis.
+	* Other typos.

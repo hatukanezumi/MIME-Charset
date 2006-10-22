@@ -8,21 +8,40 @@ MIME::Charset - Charset Informations for MIME
 
 =head1 SYNOPSIS
 
-    use MIME::Charset qw(:all);
+Getting charset informations:
 
-    # Convert text for message body.
-    ($converted, $charset, $encoding) =
-        body_encode(
-            "\xc9\xc2\xc5\xaa\xc0\xde\xc3\xef\xc5\xaa".
-            "\xc7\xd1\xca\xaa\xbd\xd0\xce\xcf\xb4\xef",
-            "euc-jp");
+    use MIME::Charset qw(:info);
 
-    # Convert text for message header.
-    ($converted, $charset, $encoding) =
+    $benc = body_encoding("iso-8859-2"); # "Q"
+    $cset = canonical_charset("ANSI X3.4-1968"); # "US-ASCII"
+    $henc = header_encoding("utf-8"); # "S"
+    $cset = output_charset("shift_jis"); # "ISO-2022-JP"
+
+Translating text data:
+
+    use MIME::Charset qw(:trans);
+
+    ($text, $charset, $encoding) =
         header_encode(
            "\xc9\xc2\xc5\xaa\xc0\xde\xc3\xef\xc5\xaa".
            "\xc7\xd1\xca\xaa\xbd\xd0\xce\xcf\xb4\xef",
            "euc-jp");
+    # ...returns (<converted>, "ISO-2022-JP", "B");
+
+    ($text, $charset, $encoding) =
+        body_encode(
+            "Collectioneur path\xe9tiquement ".
+            "\xe9clectique de d\xe9chets",
+            "latin1");
+    # ...returns (<original>, "ISO-8859-1", "QUOTED-PRINTABLE");
+
+Manipulating package defaults:
+
+    use MIME::Charset;
+
+    MIME::Charset::alias("csEUCKR", "euc-kr");
+    MIME::Charset::default("iso-8859-1");
+    MIME::Charset::fallback("us-ascii");
 
 =head1 DESCRIPTION
 
@@ -33,18 +52,23 @@ MIME messages on Internet.
 
 =cut
 
-use vars qw(@ISA $VERSION);
 use strict;
-require Exporter;
-my @ISA = qw(Exporter);
-my @EXPORT_OK = qw(body_encoding canonical_charset header_encoding
-		   output_charset body_encode header_encode
-		   alias default fallback recommended);
+use vars qw(@ISA $VERSION @EXPORT @EXPORT_OK %EXPORT_TAGS);
+use Exporter;
+@ISA = qw(Exporter);
+@EXPORT = qw(body_encoding canonical_charset header_encoding
+		   output_charset body_encode header_encode);
+@EXPORT_OK = qw(alias default fallback recommended);
+%EXPORT_TAGS = (
+		"info" => [qw(body_encoding header_encoding
+			      canonical_charset output_charset)],
+		"trans" =>[ qw(body_encode header_encode)],
+);
 use Carp qw(croak);
 
 use Encode;
 
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 ######## Private Attributes ########
 
@@ -109,7 +133,7 @@ my @ISO2022_SEQ = (# escape seq	possible charset
 		   ["\033\$(D",	"ISO-2022-JP"],	# RFC 2237 (note*)
 		   # Folloing sequences are less commonly used.
 		   ["\033\$)C",	"ISO-2022-KR"],	# RFC 1557
-		   ["\033\$)A",	"ISO-2022-CN"], # ditto
+		   ["\033\$)A",	"ISO-2022-CN"], # RFC 1922
 		   ["\033\$A",	"ISO-2022-CN"], # ditto (nonstandard)
 		   ["\033\$)G",	"ISO-2022-CN"], # ditto
 		   ["\033\$*H",	"ISO-2022-CN"], # ditto
@@ -119,9 +143,9 @@ my @ISO2022_SEQ = (# escape seq	possible charset
 
 		   # note*: This RFC defines ISO-2022-JP-1, superset of
 		   # ISO-2022-JP.  But that charset name is rarely used.
-		   # OTOH many of decoders/encoders for ISO-2022-JP
-		   # recognize this sequence so that comatibility with EUC-JP
-		   # will be guaranteed.
+		   # OTOH many of codecs for ISO-2022-JP recognize this
+		   # sequence so that comatibility with EUC-JP will be
+		   # guaranteed.
 
 ######## Private Constants ########
 
@@ -210,7 +234,7 @@ OPTS may accept following key-value pairs:
 
 =item Replacement => REPLACEMENT
 
-Specifies error handling scheme. See L<ERROR HANDLING>.
+Specifies error handling scheme. See L<"ERROR HANDLING">.
 
 =item Detect7bit => YESNO
 
@@ -221,11 +245,11 @@ Default is C<"YES">.
 
 3-item list of (I<converted string>, I<charset for output>,
 I<transfer-encoding>) is returned.
-C<Transfer-encoding> is either C<"BASE64">, C<"QUOTED-PRINTABLE">,
+I<Transfer-encoding> is either C<"BASE64">, C<"QUOTED-PRINTABLE">,
 C<"7BIT"> or C<"8BIT">.  If I<charset for output> could not be determined
 and I<converted string> contains non-ASCII byte(s), I<charset for output> is
 C<undef> and I<transfer-encoding> is C<"BASE64">.  I<Charset for output> is
-C<"US-ASCII"> if and only if string doesn't contain any non-ASCII bytes.
+C<"US-ASCII"> if and only if string does not contain any non-ASCII bytes.
 
 =cut
 
@@ -265,7 +289,7 @@ OPTS may accept following key-value pairs:
 
 =item Replacement => REPLACEMENT
 
-Specifies error handling scheme. See L<ERROR HANDLING>.
+Specifies error handling scheme. See L<"ERROR HANDLING">.
 
 =item Detect7bit => YESNO
 
@@ -454,7 +478,7 @@ If CHARSET is given and not false, it is set to default charset.
 Otherwise, default charset is not changed.  In both cases, this
 function returns current default charset.
 
-B<Note>: Default charset should not be changed.
+B<NOTE>: Default charset I<should not> be changed.
 
 =cut
 
@@ -523,9 +547,10 @@ used for MIME messages on Internet.  If conversion is not needed
 C<undef>.
 
 B<NOTE>: This function in the future releases can accept more optional
-arguments (for example, properties for line folding).  So format of
-returned value may probably be changed.  Use L<header_encoding>,
-L<body_encoding> or L<output_charset> to get particular profile.
+arguments (for example, properties to handle character widths, line folding
+behavior, ...).  So format of returned value may probably be changed.
+Use L<header_encoding>, L<body_encoding> or L<output_charset> to get
+particular profile.
 
 =cut
 
@@ -583,8 +608,8 @@ Synonym is C<"STRICT">.
 
 =item C<"XMLCREF">
 
-Use L<FB_PERLQQ>, L<FB_HTMLCREF> or L<FB_XMLCREF> scheme defined by
-L<Encode> module.
+Use L<Encode/FB_PERLQQ>, L<Encode/FB_HTMLCREF> or L<Encode/FB_XMLCREF>
+scheme defined by L<Encode> module.
 
 =back
 
@@ -606,7 +631,7 @@ This program is free software; you can redistribute it and/or modify
 it under the terms of either:
 
 a) the GNU General Public License as published by the Free Software
-Foundation; either version 1, or (at your option) any later version,
+Foundation; either version 2, or (at your option) any later version,
 
 or
 
