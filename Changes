@@ -1,3 +1,10 @@
+2006-11-16	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 0.043.
+	* No changes on codes.
+	* Change of Charset-ja_JP.pod (former Charset/ja_JP.pod).
+	* Charset.pm: Added information of development version.
+
 2006-10-22	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 0.042.

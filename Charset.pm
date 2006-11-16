@@ -95,7 +95,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '0.042';
+$VERSION = '0.043';
 
 ######## Private Attributes ########
 
@@ -732,6 +732,9 @@ C<"DEFAULT"> will be assumed.
 =head1 VERSION
 
 Consult $VERSION variable.
+
+Development versions of this module may be found at
+L<http://hatuka.nezumi.nu/repos/MIME-Charset/>.
 
 =head1 SEE ALSO
 

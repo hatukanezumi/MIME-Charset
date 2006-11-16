@@ -1,6 +1,7 @@
 ARTISTIC
 Changes
 Charset.pm
+Charset-ja_JP.pod
 Charset/_Compat.pm
 GPL
 Makefile.PL

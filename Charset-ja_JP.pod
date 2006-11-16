@@ -1,3 +1,5 @@
+=encoding utf-8
+
 =head1 NAME
 
 MIME::Charset - MIME のためのキャラクタセット情報
@@ -334,6 +336,9 @@ C<"DEFAULT"> とみなす。
 =head1 VERSION
 
 $VERSION 変数を見てほしい。
+
+このモジュールの開発版が
+L<http://hatuka.nezumi.nu/repos/MIME-Charset/> にある。
 
 =head1 SEE ALSO
 
