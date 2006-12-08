@@ -242,6 +242,9 @@ DESCRIPTION
 VERSION
     Consult $VERSION variable.
 
+    Development versions of this module may be found at
+    <http://hatuka.nezumi.nu/repos/MIME-Charset/>.
+
 SEE ALSO
     Multipurpose Internet Mail Extensions (MIME).
 

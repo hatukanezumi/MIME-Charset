@@ -95,7 +95,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '0.043';
+$VERSION = '0.044';
 
 ######## Private Attributes ########
 
@@ -148,6 +148,7 @@ my %CHARSET_ALIASES = (# unpreferred		preferred
 		       "SHIFTJISX0213" =>	"SHIFT_JISX0213",
 		       "UNICODE-1-1-UTF-7" =>	"UTF-7",
 		       "UTF8" =>		"UTF-8",
+		       "UTF-8-STRICT" =>	"UTF-8",
 		       );
 
 # ISO-2022-* escape sequnces to detect charset from unencoded data.

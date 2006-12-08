@@ -1,3 +1,9 @@
+2006-12-08	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 0.044.
+	* Fix on 'UTF-8-STRICT', new canonical name of 'UTF-8' by 
+	  Encode module (approximately 2.14).
+
 2006-11-16	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 0.043.
