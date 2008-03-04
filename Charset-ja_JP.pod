@@ -6,7 +6,42 @@ MIME::Charset - MIME のためのキャラクタセット情報
 
 =head1 SYNOPSIS
 
+    use MIME::Charset:
+
+    $charset = MIME::Charset->new("euc-jp");
+
 キャラクタセット情報の取得:
+
+    $benc = $charset->body_encoding; # 例 "Q"
+    $cset = $charset->canonical_charset; # 例 "US-ASCII"
+    $henc = $charset->header_encoding; # 例 "S"
+    $cset = $charset->output_charset; # 例 "ISO-2022-JP"
+
+テキストデータの変換:
+
+    ($text, $charset, $encoding) =
+        $charset->header_encode(
+           "\xc9\xc2\xc5\xaa\xc0\xde\xc3\xef\xc5\xaa".
+           "\xc7\xd1\xca\xaa\xbd\xd0\xce\xcf\xb4\xef");
+    # ...例えば (<converted>, "ISO-2022-JP", "B") を返す
+
+    ($text, $charset, $encoding) =
+        $charset->body_encode(
+            "Collectioneur path\xe9tiquement ".
+    # ...例えば (<original>, "ISO-8859-1", "QUOTED-PRINTABLE") を返す
+
+    $len = $charset->encoded_header_len(
+        "Perl\xe8\xa8\x80\xe8\xaa\x9e", "b"); # 例 28
+
+モジュール既定値の操作:
+
+    use MIME::Charset;
+
+    MIME::Charset::alias("csEUCKR", "euc-kr");
+    MIME::Charset::default("iso-8859-1");
+    MIME::Charset::fallback("us-ascii");
+
+非OOP関数 (近い将来に廃止):
 
     use MIME::Charset qw(:info);
 
@@ -14,8 +49,6 @@ MIME::Charset - MIME のためのキャラクタセット情報
     $cset = canonical_charset("ANSI X3.4-1968"); # "US-ASCII"
     $henc = header_encoding("utf-8"); # "S"
     $cset = output_charset("shift_jis"); # "ISO-2022-JP"
-
-テキストデータの変換:
 
     use MIME::Charset qw(:trans);
 
@@ -35,14 +68,6 @@ MIME::Charset - MIME のためのキャラクタセット情報
 
     $len = encoded_header_len(
         "Perl\xe8\xa8\x80\xe8\xaa\x9e", "b", "utf-8"); # 28
-
-モジュール既定値の操作:
-
-    use MIME::Charset;
-
-    MIME::Charset::alias("csEUCKR", "euc-kr");
-    MIME::Charset::default("iso-8859-1");
-    MIME::Charset::fallback("us-ascii");
 
 =head1 DESCRIPTION
 
@@ -67,7 +92,17 @@ US-ASCII 文字の列として表現する方法を指す。
 
 =cut
 
+=head2 コンストラクタ
+
+=item $charset = MIME::Charset->new(CHARSET)
+
+CHARSET からキャラクタセットオブジェクトを作成して返す。
+
+=cut
+
 =head2 キャラクタセット情報の取得
+
+=item $charset->body_encoding
 
 =item body_encoding CHARSET
 
@@ -80,12 +115,16 @@ C<undef> (伝送エンコーディングしなくてよい --- 7BIT か 8BIT)
 
 =cut
 
+=item $charset->canonical_charset
+
 =item canonical_charset CHARSET
 
 キャラクタセット CHARSET の正規の名前を取得する。
 
 
 =cut
+
+=item $charset->header_encoding
 
 =item header_encoding CHARSET
 
@@ -97,6 +136,8 @@ C<undef> (エンコードしなくてよい)
 
 
 =cut
+
+=item $charset->output_charset
 
 =item output_charset CHARSET
 
@@ -111,6 +152,8 @@ Unicode/マルチバイト対応が有効になっていないとき (L<"USE_ENC
 =cut
 
 =head2 テキストデータの変換
+
+=item $charset->body_encode(STRING [, OPTS])
 
 =item body_encode STRING, CHARSET [, OPTS]
 
@@ -149,6 +192,8 @@ I<出力のキャラクタセット> が C<"US-ASCII">
 
 =cut
 
+=item $charset->encoded_header_len(STRING [,ENCODING])
+
 =item encoded_header_len STRING, ENCODING, CHARSET
 
 STRING をメッセージヘッダとしてエンコードしたときの長さ
@@ -159,6 +204,8 @@ ENCODING は C<"B">、C<"Q">、C<"S">
 
 
 =cut
+
+=item $charset->heder_encode(STRING [, OPTS])
 
 =item header_encode STRING, CHARSET [, OPTS]
 
@@ -346,11 +393,10 @@ Multipurpose Internet Mail Extensions (MIME).
 
 =head1 AUTHORS
 
-Copyright (C) 2006 Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>.
+Copyright (C) 2006-2008 Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>.
 
 All rights reserved.  This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
 
 =cut
-

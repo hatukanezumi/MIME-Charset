@@ -2,7 +2,43 @@ NAME
     MIME::Charset - Charset Informations for MIME
 
 SYNOPSIS
+        use MIME::Charset:
+
+        $charset = MIME::Charset->new("euc-jp");
+
     Getting charset informations:
+
+        $benc = $charset->body_encoding; # e.g. "Q"
+        $cset = $charset->canonical_charset; # e.g. "US-ASCII"
+        $henc = $charset->header_encoding; # e.g. "S"
+        $cset = $charset->output_charset; # e.g. "ISO-2022-JP"
+
+    Translating text data:
+
+        ($text, $charset, $encoding) =
+            $charset->header_encode(
+               "\xc9\xc2\xc5\xaa\xc0\xde\xc3\xef\xc5\xaa".
+               "\xc7\xd1\xca\xaa\xbd\xd0\xce\xcf\xb4\xef");
+        # ...returns e.g. (<converted>, "ISO-2022-JP", "B");
+
+        ($text, $charset, $encoding) =
+            $charset->body_encode(
+                "Collectioneur path\xe9tiquement ".
+                "\xe9clectique de d\xe9chets");
+        # ...returns e.g. (<original>, "ISO-8859-1", "QUOTED-PRINTABLE");
+
+        $len = $charset->encoded_header_len(
+            "Perl\xe8\xa8\x80\xe8\xaa\x9e", "b"); # e.g. 28
+
+    Manipulating module defaults:
+
+        use MIME::Charset;
+
+        MIME::Charset::alias("csEUCKR", "euc-kr");
+        MIME::Charset::default("iso-8859-1");
+        MIME::Charset::fallback("us-ascii");
+
+    Non-OOP functions (may be deprecated in near future):
 
         use MIME::Charset qw(:info);
 
@@ -10,8 +46,6 @@ SYNOPSIS
         $cset = canonical_charset("ANSI X3.4-1968"); # "US-ASCII"
         $henc = header_encoding("utf-8"); # "S"
         $cset = output_charset("shift_jis"); # "ISO-2022-JP"
-
-    Translating text data:
 
         use MIME::Charset qw(:trans);
 
@@ -32,14 +66,6 @@ SYNOPSIS
         $len = encoded_header_len(
             "Perl\xe8\xa8\x80\xe8\xaa\x9e", "b", "utf-8"); # 28
 
-    Manipulating module defaults:
-
-        use MIME::Charset;
-
-        MIME::Charset::alias("csEUCKR", "euc-kr");
-        MIME::Charset::default("iso-8859-1");
-        MIME::Charset::fallback("us-ascii");
-
 DESCRIPTION
     MIME::Charset provides informations about character sets used for MIME
     messages on Internet.
@@ -54,7 +80,12 @@ DESCRIPTION
     body part or a header body as sequence(s) of printable US-ASCII
     characters.
 
+  CONSTRUCTOR
+    $charset = MIME::Charset->new(CHARSET)
+        Create charset object from CHARSET.
+
   GETTING INFORMATIONS OF CHARSETS
+    $charset->body_encoding
     body_encoding CHARSET
         Get recommended transfer-encoding of CHARSET for message body.
 
@@ -62,9 +93,11 @@ DESCRIPTION
         or "undef" (might not be transfer-encoded; either 7BIT or 8BIT).
         This may not be same as encoding for message header.
 
+    $charset->canonical_charset
     canonical_charset CHARSET
         Get canonical name for charset CHARSET.
 
+    $charset->header_encoding
     header_encoding CHARSET
         Get recommended encoding scheme of CHARSET for message header.
 
@@ -72,6 +105,7 @@ DESCRIPTION
         or "undef" (might not be encoded). This may not be same as encoding
         for message body.
 
+    $charset->output_charset
     output_charset CHARSET
         Get a charset which is compatible with given CHARSET and is
         recommended to be used for MIME messages on Internet (if it is known
@@ -81,6 +115,7 @@ DESCRIPTION
         function will simply return the result of "canonical_charset".
 
   TRANSLATING TEXT DATA
+    $charset->body_encode(STRING [, OPTS])
     body_encode STRING, CHARSET [, OPTS]
         Get converted (if needed) data of STRING and recommended
         transfer-encoding of that data for message body. CHARSET is the
@@ -106,12 +141,14 @@ DESCRIPTION
         "US-ASCII" if and only if string does not contain any non-ASCII
         bytes.
 
+    $charset->encoded_header_len(STRING [, ENCODING])
     encoded_header_len STRING, ENCODING, CHARSET
         Get length of encoded STRING for message header (without folding).
 
         ENCODING may be one of "B", "Q" or "S" (shorter one of either "B" or
         "Q").
 
+    $charset->header_encode(STRING [, OPTS])
     header_encode STRING, CHARSET [, OPTS]
         Get converted (if needed) data of STRING and recommended encoding
         scheme of that data for message headers. CHARSET is the charset by
@@ -230,7 +267,7 @@ DESCRIPTION
         you should trap the fatal error with eval{} unless you really want
         to let it die on error. Synonym is "STRICT".
 
-    "PERQQ"
+    "PERLQQ"
     "HTMLCREF"
     "XMLCREF"
         Use "FB_PERLQQ", "FB_HTMLCREF" or "FB_XMLCREF" scheme defined by
@@ -249,7 +286,8 @@ SEE ALSO
     Multipurpose Internet Mail Extensions (MIME).
 
 AUTHORS
-    Copyright (C) 2006 Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>.
+    Copyright (C) 2006-2008 Hatuka*nezumi - IKEDA Soji
+    <hatuka(at)nezumi.nu>.
 
     All rights reserved. This program is free software; you can redistribute
     it and/or modify it under the same terms as Perl itself.

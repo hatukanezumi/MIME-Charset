@@ -8,7 +8,43 @@ MIME::Charset - Charset Informations for MIME
 
 =head1 SYNOPSIS
 
+    use MIME::Charset:
+
+    $charset = MIME::Charset->new("euc-jp");
+
 Getting charset informations:
+
+    $benc = $charset->body_encoding; # e.g. "Q"
+    $cset = $charset->canonical_charset; # e.g. "US-ASCII"
+    $henc = $charset->header_encoding; # e.g. "S"
+    $cset = $charset->output_charset; # e.g. "ISO-2022-JP"
+
+Translating text data:
+
+    ($text, $charset, $encoding) =
+        $charset->header_encode(
+           "\xc9\xc2\xc5\xaa\xc0\xde\xc3\xef\xc5\xaa".
+           "\xc7\xd1\xca\xaa\xbd\xd0\xce\xcf\xb4\xef");
+    # ...returns e.g. (<converted>, "ISO-2022-JP", "B");
+
+    ($text, $charset, $encoding) =
+        $charset->body_encode(
+            "Collectioneur path\xe9tiquement ".
+            "\xe9clectique de d\xe9chets");
+    # ...returns e.g. (<original>, "ISO-8859-1", "QUOTED-PRINTABLE");
+
+    $len = $charset->encoded_header_len(
+        "Perl\xe8\xa8\x80\xe8\xaa\x9e", "b"); # e.g. 28
+
+Manipulating module defaults:
+
+    use MIME::Charset;
+
+    MIME::Charset::alias("csEUCKR", "euc-kr");
+    MIME::Charset::default("iso-8859-1");
+    MIME::Charset::fallback("us-ascii");
+
+Non-OOP functions (may be deprecated in near future):
 
     use MIME::Charset qw(:info);
 
@@ -16,8 +52,6 @@ Getting charset informations:
     $cset = canonical_charset("ANSI X3.4-1968"); # "US-ASCII"
     $henc = header_encoding("utf-8"); # "S"
     $cset = output_charset("shift_jis"); # "ISO-2022-JP"
-
-Translating text data:
 
     use MIME::Charset qw(:trans);
 
@@ -37,14 +71,6 @@ Translating text data:
 
     $len = encoded_header_len(
         "Perl\xe8\xa8\x80\xe8\xaa\x9e", "b", "utf-8"); # 28
-
-Manipulating module defaults:
-
-    use MIME::Charset;
-
-    MIME::Charset::alias("csEUCKR", "euc-kr");
-    MIME::Charset::default("iso-8859-1");
-    MIME::Charset::fallback("us-ascii");
 
 =head1 DESCRIPTION
 
@@ -95,7 +121,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '0.044';
+$VERSION = '1.000';
 
 ######## Private Attributes ########
 
@@ -188,7 +214,40 @@ my $ISO2022RE = qr{
 
 ######## Public Functions ########
 
+=head2 CONSTRUCTOR
+
+=item $charset = MIME::Charset->new(CHARSET)
+
+Create charset object from CHARSET.
+
+=cut
+
+sub new {
+    my $class = shift;
+    my $charset = shift;
+    return undef unless $charset;
+    $charset = resolve_alias($charset) || $charset;
+    $charset = $CHARSET_ALIASES{uc($charset)} || uc($charset);
+    my ($henc, $benc, $outcset);
+    my $spec = $CHARSETS{$charset};
+    if ($spec) {
+	($henc, $benc, $outcset) =
+	    ($$spec[0], $$spec[1], USE_ENCODE? $$spec[2]: undef);
+    } else {
+	($henc, $benc, $outcset) = ('S', 'B', undef);
+    }
+    
+    bless {
+	InputCharset => $charset,
+	HeaderEncoding => $henc,
+	BodyEncoding => $benc,
+	OutputCharset => ($outcset || $charset),
+    }, $class;
+}
+
 =head2 GETTING INFORMATIONS OF CHARSETS
+
+=item $charset->body_encoding
 
 =item body_encoding CHARSET
 
@@ -201,10 +260,13 @@ not be same as encoding for message header.
 =cut
 
 sub body_encoding($) {
-    my $charset = shift;
-    return undef unless $charset;
-    return (&recommended($charset))[1];
+    my $self = shift;
+    return undef unless $self;
+    $self = MIME::Charset->new($self) unless ref $self;
+    $self->{BodyEncoding};
 }
+
+=item $charset->canonical_charset
 
 =item canonical_charset CHARSET
 
@@ -213,11 +275,13 @@ Get canonical name for charset CHARSET.
 =cut
 
 sub canonical_charset($) {
-    my $charset = shift;
-    return undef unless $charset;
-    my $cset = resolve_alias($charset) || $charset;
-    return $CHARSET_ALIASES{uc($cset)} || uc($cset);
+    my $self = shift;
+    return undef unless $self;
+    $self = MIME::Charset->new($self) unless ref $self;
+    $self->{InputCharset};
 }
+
+=item $charset->header_encoding
 
 =item header_encoding CHARSET
 
@@ -230,10 +294,13 @@ for message body.
 =cut
 
 sub header_encoding($) {
-    my $charset = shift;
-    return undef unless $charset;
-    return (&recommended($charset))[0];
+    my $self = shift;
+    return undef unless $self;
+    $self = MIME::Charset->new($self) unless ref $self;
+    $self->{HeaderEncoding};
 }
+
+=item $charset->output_charset
 
 =item output_charset CHARSET
 
@@ -247,12 +314,15 @@ return the result of L<"canonical_charset">.
 =cut
 
 sub output_charset($) {
-    my $charset = shift;
-    return undef unless $charset;
-    return (&recommended($charset))[2] || uc($charset);
+    my $self = shift;
+    return undef unless $self;
+    $self = MIME::Charset->new($self) unless ref $self;
+    $self->{OutputCharset};
 }
 
 =head2 TRANSLATING TEXT DATA
+
+=item $charset->body_encode(STRING [, OPTS])
 
 =item body_encode STRING, CHARSET [, OPTS]
 
@@ -290,7 +360,15 @@ contain any non-ASCII bytes.
 =cut
 
 sub body_encode {
-    my ($encoded, $charset, $cset) = &_text_encode(@_);
+    my $self = shift;
+    my $text;
+    if (ref $self) {
+	$text = shift;
+    } else {
+	$text = $self;
+	$self = MIME::Charset->new(shift);
+    }
+    my ($encoded, $charset, $cset) = &_text_encode($self, $text, @_);
 
     # Determine transfer-encoding.
     my $enc;
@@ -303,7 +381,7 @@ sub body_encode {
 	$enc = undef;
     } else {
 	$@ = '';
-	$enc = &body_encoding($charset);
+	$enc = $charset->body_encoding;
     }
 
     if (!$enc and $encoded !~ /\x00/) {	# Eliminate hostile NUL character.
@@ -325,6 +403,8 @@ sub body_encode {
     return ($encoded, $cset, $enc);
 }
 
+=item $charset->encoded_header_len(STRING [, ENCODING])
+
 =item encoded_header_len STRING, ENCODING, CHARSET
 
 Get length of encoded STRING for message header
@@ -335,10 +415,20 @@ one of either C<"B"> or C<"Q">).
 
 =cut
 
-sub encoded_header_len($$$) {
-    my $s = shift;
-    my $encoding = uc(shift);
-    my $charset  = shift;
+sub encoded_header_len($$$;) {
+    my $self = shift;
+    my ($encoding, $s);
+    if (ref $self) {
+	$s = shift;
+	$encoding = uc(shift) || $self->{HeaderEncoding};
+    } else {
+	$s = $self;
+	$encoding = uc(shift);
+	$self  = shift;
+	$self = MIME::Charset->new($self) unless ref $self;
+    }
+
+    #FIXME:$encoding === undef
 
     my $enclen;
     if ($encoding eq 'Q') {
@@ -350,7 +440,7 @@ sub encoded_header_len($$$) {
         $enclen = _enclen_B($s);
     }
 
-    length($charset)+$enclen+7;
+    length($self->{OutputCharset})+$enclen+7;
 }
 
 sub _enclen_B($) {
@@ -363,6 +453,8 @@ sub _enclen_Q($) {
     @o = ($s =~ /(\?|=|_|[^ \x21-\x7e])/gos);
     length($s) + scalar(@o) * 2;
 }
+
+=item $charset->header_encode(STRING [, OPTS])
 
 =item header_encode STRING, CHARSET [, OPTS]
 
@@ -403,7 +495,15 @@ contain any non-ASCII bytes.
 =cut
 
 sub header_encode {
-    my ($encoded, $charset, $cset) = &_text_encode(@_);
+    my $self = shift;
+    my $text;
+    if (ref $self) {
+	$text = shift;
+    } else {
+	$text = $self;
+	$self = MIME::Charset->new(shift);
+    }
+    my ($encoded, $charset, $cset) = &_text_encode($self, $text, @_);
     return ($encoded, '8BIT', undef) unless $cset;
 
     # Determine encoding scheme.
@@ -417,7 +517,7 @@ sub header_encode {
 	$enc = undef;
     } else {
 	$@ = '';
-	$enc = &header_encoding($charset);
+	$enc = $charset->{HeaderEncoding};
     }
 
     if (!$enc and $encoded !~ $NONASCIIRE) {
@@ -425,8 +525,7 @@ sub header_encode {
             $cset = 'US-ASCII';
         }
     } elsif ($enc eq 'S') {
-	if (&encoded_header_len($encoded, "B", $cset) <
-	    &encoded_header_len($encoded, "Q", $cset)) {
+	if (_enclen_B($encoded) < _enclen_Q($encoded)) {
 	    $enc = 'B';
 	} else {
 	    $enc = 'Q';
@@ -438,8 +537,8 @@ sub header_encode {
 }
 
 sub _text_encode {
+    my $charset = shift;
     my $s = shift;
-    my $charset = &canonical_charset(shift);
     my %params = @_;
     my $replacement = uc($params{'Replacement'}) || "DEFAULT";
     my $detect7bit = uc($params{'Detect7bit'}) || "YES";
@@ -448,19 +547,19 @@ sub _text_encode {
 	if ($s =~ $NONASCIIRE) {
 	    return ($s, undef, undef);
 	} elsif ($detect7bit ne "NO") {
-	    $charset = &_detect_7bit_charset($s);
+	    $charset = MIME::Charset->new(&_detect_7bit_charset($s));
 	} else {
-	    $charset = $DEFAULT_CHARSET;
+	    $charset = MIME::Charset->new($DEFAULT_CHARSET);
 	} 
     }
 
     # Unknown charset.
-    return ($s, $charset, $charset)
-	unless resolve_alias($charset);
+    return ($s, $charset, $charset->{InputCharset})
+	unless resolve_alias($charset->{InputCharset});
 
     # Encode data by output charset if required.  If failed, fallback to
     # fallback charset.
-    my $cset = &output_charset($charset);
+    my $cset = $charset->output_charset;
     my $encoded;
 
     if (is_utf8($s) or $s =~ /[^\x00-\xFF]/) {
@@ -474,7 +573,7 @@ sub _text_encode {
 		    $cset = $FALLBACK_CHARSET;
 		    $encoded = $s;
 		    $encoded = encode($cset, $encoded);
-		    $charset = $cset;
+		    $charset = MIME::Charset->new($cset);
 		} else {
 		    croak $@;
 		}
@@ -488,30 +587,30 @@ sub _text_encode {
 	} else {
 	    $encoded = encode($cset, $s);
 	}
-    } elsif ($charset ne $cset) {
+    } elsif ($charset->{InputCharset} ne $cset) {
 	$encoded = $s;
 	if ($replacement =~ /^(?:CROAK|STRICT|FALLBACK)$/) {
 	    eval {
-		from_to($encoded, $charset, $cset, FB_CROAK());
+		from_to($encoded, $charset->{InputCharset}, $cset, FB_CROAK());
 	    };
 	    if ($@) {
 		if ($replacement eq "FALLBACK" and $FALLBACK_CHARSET) {
 		    $cset = $FALLBACK_CHARSET;
 		    $encoded = $s;
-		    from_to($encoded, $charset, $cset);
-		    $charset = $cset;
+		    from_to($encoded, $charset->{InputCharset}, $cset);
+		    $charset = MIME::Charset->new($cset);
 		} else {
 		    croak $@;
 		}
 	    }
         } elsif ($replacement eq "PERLQQ") {
-            from_to($encoded, $charset, $cset, FB_PERLQQ());
+            from_to($encoded, $charset->{InputCharset}, $cset, FB_PERLQQ());
         } elsif ($replacement eq "HTMLCREF") {
-            from_to($encoded, $charset, $cset, FB_HTMLCREF());
+            from_to($encoded, $charset->{InputCharset}, $cset, FB_HTMLCREF());
         } elsif ($replacement eq "XMLCREF") {
-            from_to($encoded, $charset, $cset, FB_XMLCREF());
+            from_to($encoded, $charset->{InputCharset}, $cset, FB_XMLCREF());
         } else {
-            from_to($encoded, $charset, $cset);
+            from_to($encoded, $charset->{InputCharset}, $cset);
         }
     } else {
         $encoded = $s;
@@ -675,12 +774,9 @@ sub recommended ($;$;$;$) {
 	$CHARSETS{$charset} = \@spec;
 	return @spec;
     } else {
-	my $spec = $CHARSETS{$charset};
-	if ($spec) {
-	    return ($$spec[0], $$spec[1], USE_ENCODE? $$spec[2]: undef);
-	} else {
-	    return ('S', 'B', undef);
-	}
+	$charset = MIME::Charset->new($charset) unless ref $charset;
+	return map { $charset->{$_} } qw(HeaderEncoding BodyEncoding
+					 OutputCharset);
     }
 }
 
@@ -716,7 +812,7 @@ Therefore, you should trap the fatal error with eval{} unless you
 really want to let it die on error.
 Synonym is C<"STRICT">.
 
-=item C<"PERQQ">
+=item C<"PERLQQ">
 
 =item C<"HTMLCREF">
 
@@ -743,7 +839,7 @@ Multipurpose Internet Mail Extensions (MIME).
 
 =head1 AUTHORS
 
-Copyright (C) 2006 Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>.
+Copyright (C) 2006-2008 Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>.
 
 All rights reserved.  This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
