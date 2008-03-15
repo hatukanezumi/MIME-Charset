@@ -1,3 +1,18 @@
+2008-03-15	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 1.001.
+	* Bug fix: Detect7bit options have no effect by OO method
+	  (1.000).
+	* Change: now new() returns an object when CHARSET is not
+	  specified.
+	* New methods: as_string(), decode(), decoder(), encode()
+	  and encoder().
+	* New feature: "Mapping" option to choose extended
+	  mappings or strict ones.  Default is "EXTENDED", while
+	  as of 1.000, only "STANDARD" mappings are available.
+	* New feature: configuration file to override module
+	  defaults. See "Configuration File" section.
+
 2008-03-04	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 1.000.
