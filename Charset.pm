@@ -121,7 +121,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.001';
+$VERSION = '1.002';
 
 ######## Private Attributes ########
 
@@ -375,7 +375,7 @@ sub body_encoding($) {
 
 =item canonical_charset CHARSET
 
-Get canonical name for charset CHARSET.
+Get canonical name for charset.
 
 =cut
 
@@ -391,23 +391,6 @@ sub as_string($) {
     $self->{InputCharset};
 }
 
-=item $charset->decode(STRING [,CHECK])
-
-Decode STRING to Unicode.
-
-B<Note>:
-When Unicode/multibyte support is disabled (see L<"USE_ENCODE">),
-this function will die.
-
-=cut
-
-sub decode($$$;) {
-    my $self = shift;
-    my $s = shift;
-    my $check = shift || 0;
-    $self->{Decoder}->decode($s, $check);
-}
-
 =item $charset->decoder
 
 Get L<"Encode::Encoding"> object to decode strings by charset.
@@ -419,39 +402,23 @@ sub decoder($) {
     $self->{Decoder};
 }
 
-=item $charset->encode(STRING [,CHECK])
-
-Encode STRING (Unicode or non-Unicode) using compatible charset recommended
-to be used for messages on Internet (if this module know it).
-Note that string will be decoded then encoded even if compatible charset
-was equal to original charset.
-
-B<Note>:
-When Unicode/multibyte support is disabled (see L<"USE_ENCODE">),
-this function will die.
-
-=cut
-
-sub encode($$$;) {
-    my $self = shift;
-    my $s = shift;
-    my $check = shift || 0;
-
-    unless (is_utf8($s) or $s =~ /[^\x00-\xFF]/) {
-	$s = $self->{Decoder}->decode($s, ($check & 0x1)? FB_CROAK(): 0);
-    }
-    $self->{Encoder}->encode($s, $check);
-}
-
-=item $charset->encoder
+=item $charset->encoder([CHARSET])
 
 Get L<"Encode::Encoding"> object to encode Unicode string using compatible
 charset recommended to be used for messages on Internet.
 
 =cut
 
-sub encoder($) {
+sub encoder($$;) {
     my $self = shift;
+    my $charset = shift;
+    if ($charset) {
+	$charset = MIME::Charset->new($charset) unless ref $charset;
+	$self->{OutputCharset} = $charset->{InputCharset};
+	$self->{Encoder} = $charset->{Decoder};
+	#XXX$self->{BodyEncoding} = $charset->{BodyEncoding};
+	#XXX$self->{HeaderEncoding} = $charset->{HeaderEncoding};
+    }
     $self->{Encoder};
 }
 
@@ -578,6 +545,47 @@ sub body_encode {
         $enc = 'BASE64';
     }
     return ($encoded, $cset, $enc);
+}
+
+=item $charset->decode(STRING [,CHECK])
+
+Decode STRING to Unicode.
+
+B<Note>:
+When Unicode/multibyte support is disabled (see L<"USE_ENCODE">),
+this function will die.
+
+=cut
+
+sub decode($$$;) {
+    my $self = shift;
+    my $s = shift;
+    my $check = shift || 0;
+    $self->{Decoder}->decode($s, $check);
+}
+
+=item $charset->encode(STRING [,CHECK])
+
+Encode STRING (Unicode or non-Unicode) using compatible charset recommended
+to be used for messages on Internet (if this module knows it).
+Note that string will be decoded then encoded even if compatible charset
+was equal to original charset.
+
+B<Note>:
+When Unicode/multibyte support is disabled (see L<"USE_ENCODE">),
+this function will die.
+
+=cut
+
+sub encode($$$;) {
+    my $self = shift;
+    my $s = shift;
+    my $check = shift || 0;
+
+    unless (is_utf8($s) or $s =~ /[^\x00-\xFF]/) {
+	$s = $self->{Decoder}->decode($s, ($check & 0x1)? FB_CROAK(): 0);
+    }
+    $self->{Encoder}->encode($s, $check);
 }
 
 =item $charset->encoded_header_len(STRING [, ENCODING])
@@ -837,6 +845,24 @@ sub _detect_7bit_charset($) {
     # How about HZ, VIQR, ...?
 
     return $DEFAULT_CHARSET;
+}
+
+=item $charset->undecode(STRING [,CHECK])
+
+Encode Unicode string STRING to byte string by input charset of $charset.
+This is a equivalent to C<$charset->decoder->encode()>.
+
+B<Note>:
+When Unicode/multibyte support is disabled (see L<"USE_ENCODE">),
+this function will die.
+
+=cut
+
+sub undecode($$$;) {
+    my $self = shift;
+    my $s = shift;
+    my $check = shift || 0;
+    $self->{Decoder}->encode($s, $check);
 }
 
 =head2 Manipulating Module Defaults

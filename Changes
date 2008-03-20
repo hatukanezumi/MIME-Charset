@@ -1,3 +1,9 @@
+2008-03-20	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+	* Release 1.002.
+	* New method undecode().
+	* encoder(): added argument to set instance.
+	* Cleanup PODs.
+
 2008-03-15	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 1.001.

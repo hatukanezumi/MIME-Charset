@@ -104,27 +104,12 @@ DESCRIPTION
 
     $charset->as_string
     canonical_charset CHARSET
-        Get canonical name for charset CHARSET.
-
-    $charset->decode(STRING [,CHECK])
-        Decode STRING to Unicode.
-
-        Note: When Unicode/multibyte support is disabled (see "USE_ENCODE"),
-        this function will die.
+        Get canonical name for charset.
 
     $charset->decoder
         Get "Encode::Encoding" object to decode strings by charset.
 
-    $charset->encode(STRING [,CHECK])
-        Encode STRING (Unicode or non-Unicode) using compatible charset
-        recommended to be used for messages on Internet (if this module know
-        it). Note that string will be decoded then encoded even if
-        compatible charset was equal to original charset.
-
-        Note: When Unicode/multibyte support is disabled (see "USE_ENCODE"),
-        this function will die.
-
-    $charset->encoder
+    $charset->encoder([CHARSET])
         Get "Encode::Encoding" object to encode Unicode string using
         compatible charset recommended to be used for messages on Internet.
 
@@ -172,6 +157,21 @@ DESCRIPTION
         "US-ASCII" if and only if string does not contain any non-ASCII
         bytes.
 
+    $charset->decode(STRING [,CHECK])
+        Decode STRING to Unicode.
+
+        Note: When Unicode/multibyte support is disabled (see "USE_ENCODE"),
+        this function will die.
+
+    $charset->encode(STRING [,CHECK])
+        Encode STRING (Unicode or non-Unicode) using compatible charset
+        recommended to be used for messages on Internet (if this module
+        knows it). Note that string will be decoded then encoded even if
+        compatible charset was equal to original charset.
+
+        Note: When Unicode/multibyte support is disabled (see "USE_ENCODE"),
+        this function will die.
+
     $charset->encoded_header_len(STRING [, ENCODING])
     encoded_header_len STRING, ENCODING, CHARSET
         Get length of encoded STRING for message header (without folding).
@@ -205,6 +205,13 @@ DESCRIPTION
         will be "undef" (should not be encoded). *Charset for output* will
         be "US-ASCII" if and only if string does not contain any non-ASCII
         bytes.
+
+    $charset->undecode(STRING [,CHECK])
+    Encode Unicode string STRING to byte string by input charset of
+    $charset. This is a equivalent to "$charset-"decoder->encode()>.
+
+    Note: When Unicode/multibyte support is disabled (see "USE_ENCODE"),
+    this function will die.
 
   Manipulating Module Defaults
     alias ALIAS [, CHARSET]

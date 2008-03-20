@@ -134,17 +134,7 @@ C<undef> (伝送エンコードしなくてよい --- 7BIT か 8BIT)
 
 =item canonical_charset CHARSET
 
-キャラクタセット CHARSET の正規の名前を取得する。
-
-=cut
-
-=item $charset->decode(STRING [,CHECK])
-
-STRING を Unicode 文字列にデコードする。
-
-B<NOTE>:
-Unicode/マルチバイト対応が有効になっていないとき (L<"USE_ENCODE"> 参照) は、
-この機能を実行すると死ぬ。
+キャラクタセットの正規の名前を取得する。
 
 =cut
 
@@ -155,22 +145,7 @@ L<"Encode::Encoding"> オブジェクトを返す。
 
 =cut
 
-=item $charset->encode(STRING, [, CHECK])
-
-STRING (Unicode 文字列または普通の文字列) を、
-元のキャラクタセットと互換でインターネット上の
-MIME メッセージで使うことを推奨されるキャラクタセットを
-(当モジュールが知っていれば) 使って、エンコードする。
-元のキャラクタセットと互換キャラクタセットが同じでも、
-文字列をデコードしてからエンコードすることに注意。
-
-B<NOTE>:
-Unicode/マルチバイト対応が有効になっていないとき (L<"USE_ENCODE"> 参照) は、
-この機能を実行すると死ぬ。
-
-=cut
-
-=item $charset->encoder
+=item $charset->encoder([CHARSET])
 
 インターネット上の MIME
 メッセージで使うことを推奨される互換キャラクタセットでエンコードするのに使う
@@ -246,6 +221,31 @@ I<出力のキャラクタセット> が C<"US-ASCII">
 
 =cut
 
+=item $charset->decode(STRING [,CHECK])
+
+STRING を Unicode 文字列にデコードする。
+
+B<NOTE>:
+Unicode/マルチバイト対応が有効になっていないとき (L<"USE_ENCODE"> 参照) は、
+この機能を実行すると死ぬ。
+
+=cut
+
+=item $charset->encode(STRING, [, CHECK])
+
+STRING (Unicode 文字列または普通の文字列) を、
+元のキャラクタセットと互換でインターネット上の
+MIME メッセージで使うことを推奨されるキャラクタセットを
+(当モジュールが知っていれば) 使って、エンコードする。
+元のキャラクタセットと互換キャラクタセットが同じでも、
+文字列をデコードしてからエンコードすることに注意。
+
+B<NOTE>:
+Unicode/マルチバイト対応が有効になっていないとき (L<"USE_ENCODE"> 参照) は、
+この機能を実行すると死ぬ。
+
+=cut
+
 =item $charset->encoded_header_len(STRING [,ENCODING])
 
 =item encoded_header_len STRING, ENCODING, CHARSET
@@ -298,6 +298,18 @@ I<出力のキャラクタセット> が C<"US-ASCII">
 
 =back
 
+
+=cut
+
+=item $charset->undecode(STRING [,CHECK])
+
+Unicode 文字列 string を、
+$charset の入力キャラクタセットを使って文字列に変換する。
+これは C<$charset->decoder->encode()> と同等である。
+
+B<NOTE>:
+Unicode/マルチバイト対応が有効になっていないとき (L<"USE_ENCODE"> 参照) は、
+この機能を実行すると死ぬ。
 
 =cut
 
