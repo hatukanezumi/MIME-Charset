@@ -1,9 +1,9 @@
 ARTISTIC
 Changes
 Charset.pm
-Charset-ja_JP.pod
 Charset/_Compat.pm
 Charset/Defaults.pm.sample
+Charset/JA_JP.pod
 GPL
 Makefile.PL
 MANIFEST			This list of files
