@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-MIME::Charset - Charset Informations for MIME (MIME のためのキャラクタセット情報)
+MIME::Charset::JA_JP - MIME のためのキャラクタセット情報
 
 =head1 SYNOPSIS
 

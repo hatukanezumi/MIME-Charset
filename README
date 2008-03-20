@@ -70,7 +70,7 @@ DESCRIPTION
     MIME::Charset provides informations about character sets used for MIME
     messages on Internet.
 
-  DEFINITIONS
+  Definitions
     The charset is ``character set'' used in MIME to refer to a method of
     converting a sequence of octets into a sequence of characters. It
     includes both concepts of ``coded character set'' (CCS) and ``character
@@ -80,11 +80,20 @@ DESCRIPTION
     body part or a header body as sequence(s) of printable US-ASCII
     characters.
 
-  CONSTRUCTOR
-    $charset = MIME::Charset->new(CHARSET)
-        Create charset object from CHARSET.
+  Constructor
+    $charset = MIME::Charset->new([CHARSET [, OPTS]])
+        Create charset object.
 
-  GETTING INFORMATIONS OF CHARSETS
+        OPTS may accept following key-value pairs. NOTE: When
+        Unicode/multibyte support is disabled (see "USE_ENCODE"), conversion
+        will not be performed. So these options do not have any effects.
+
+        Mapping => MAPTYPE
+            Specify extended mappings actually used for charset names.
+            "EXTENDED" uses extended mappings. "STANDARD" uses standardized
+            strict mappings. Default is "EXTENDED".
+
+  Getting Informations of Charsets
     $charset->body_encoding
     body_encoding CHARSET
         Get recommended transfer-encoding of CHARSET for message body.
@@ -93,9 +102,31 @@ DESCRIPTION
         or "undef" (might not be transfer-encoded; either 7BIT or 8BIT).
         This may not be same as encoding for message header.
 
-    $charset->canonical_charset
+    $charset->as_string
     canonical_charset CHARSET
         Get canonical name for charset CHARSET.
+
+    $charset->decode(STRING [,CHECK])
+        Decode STRING to Unicode.
+
+        Note: When Unicode/multibyte support is disabled (see "USE_ENCODE"),
+        this function will die.
+
+    $charset->decoder
+        Get "Encode::Encoding" object to decode strings by charset.
+
+    $charset->encode(STRING [,CHECK])
+        Encode STRING (Unicode or non-Unicode) using compatible charset
+        recommended to be used for messages on Internet (if this module know
+        it). Note that string will be decoded then encoded even if
+        compatible charset was equal to original charset.
+
+        Note: When Unicode/multibyte support is disabled (see "USE_ENCODE"),
+        this function will die.
+
+    $charset->encoder
+        Get "Encode::Encoding" object to encode Unicode string using
+        compatible charset recommended to be used for messages on Internet.
 
     $charset->header_encoding
     header_encoding CHARSET
@@ -114,7 +145,7 @@ DESCRIPTION
         When Unicode/multibyte support is disabled (see "USE_ENCODE"), this
         function will simply return the result of "canonical_charset".
 
-  TRANSLATING TEXT DATA
+  Translating Text Data
     $charset->body_encode(STRING [, OPTS])
     body_encode STRING, CHARSET [, OPTS]
         Get converted (if needed) data of STRING and recommended
@@ -175,7 +206,7 @@ DESCRIPTION
         be "US-ASCII" if and only if string does not contain any non-ASCII
         bytes.
 
-  MANIPULATING MODULE DEFAULTS
+  Manipulating Module Defaults
     alias ALIAS [, CHARSET]
         Get/set charset alias for canonical names determined by
         "canonical_charset".
@@ -242,14 +273,14 @@ DESCRIPTION
         changed. Use "header_encoding", "body_encoding" or "output_charset"
         to get particular profile.
 
-  CONSTANTS
+  Constants
     USE_ENCODE
-        Unicode/multibyte support flag. Non-null string will be set when
+        Unicode/multibyte support flag. Non-empty string will be set when
         Unicode and multibyte support is enabled. Currently, this flag will
-        be non-null on Perl 5.8.1 or later and null string on earlier
+        be non-empty on Perl 5.8.1 or later and empty string on earlier
         versions of Perl.
 
-  ERROR HANDLING
+  Error Handling
         "body_encode" and "header_encode" accept following "Replacement"
         options:
 
@@ -275,6 +306,11 @@ DESCRIPTION
 
     If error handling scheme is not specified or unknown scheme is
     specified, "DEFAULT" will be assumed.
+
+  Configuration File
+    Built-in defaults for option parameters can be overridden by
+    configuration file: MIME/Charset/Defaults.pm. For more details read
+    MIME/Charset/Defaults.pm.sample.
 
 VERSION
     Consult $VERSION variable.
