@@ -305,7 +305,7 @@ I<出力のキャラクタセット> が C<"US-ASCII">
 
 Unicode 文字列 string を、
 $charset の入力キャラクタセットを使って文字列に変換する。
-これは C<$charset->decoder->encode()> と同等である。
+これは C<$charset-E<gt>decoder-E<gt>encode()> と同等である。
 
 B<NOTE>:
 Unicode/マルチバイト対応が有効になっていないとき (L<"USE_ENCODE"> 参照) は、

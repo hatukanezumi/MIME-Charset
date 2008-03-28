@@ -5,15 +5,13 @@ BEGIN { plan tests => 4 }
 
 use MIME::Charset qw(:info);
 
-ok(body_encoding("iso-8859-2") eq "Q");
+ok(body_encoding("iso-8859-2"), "Q", body_encoding("iso-8859-2"));
+ok(canonical_charset("ANSI X3.4-1968"), "US-ASCII",
+   canonical_charset("ANSI X3.4-1968"));
+ok(header_encoding("utf-8"), "S", header_encoding("utf-8"));
 if (MIME::Charset::USE_ENCODE) {
-    ok(canonical_charset("ANSI X3.4-1968") eq "US-ASCII");
+    ok(output_charset("shift_jis"), "ISO-2022-JP",
+       output_charset("shift_jis"));
 } else {
-    ok(canonical_charset("ascii") eq "US-ASCII");
-}
-ok(header_encoding("utf-8") eq "S");
-if (MIME::Charset::USE_ENCODE) {
-    ok(output_charset("shift_jis") eq "ISO-2022-JP");
-} else {
-    ok(output_charset("shift_jis") eq "SHIFT_JIS");
+    ok(output_charset("shift_jis"), "SHIFT_JIS", output_charset("shift_jis"));
 }

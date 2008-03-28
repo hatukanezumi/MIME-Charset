@@ -208,7 +208,7 @@ DESCRIPTION
 
     $charset->undecode(STRING [,CHECK])
     Encode Unicode string STRING to byte string by input charset of
-    $charset. This is a equivalent to "$charset-"decoder->encode()>.
+    $charset. This is equivalent to "$charset->decoder->encode()".
 
     Note: When Unicode/multibyte support is disabled (see "USE_ENCODE"),
     this function will die.
