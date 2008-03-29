@@ -4,8 +4,8 @@
 	  messages (experimental).
 	* _Compat.pm: resolve_alias(): real aliasing taken from
 	  Encode module.
-	* Added test for aliases.
-	* Typo in PODs.
+	* Numeric values are allowed for ``Replacement'' options.
+	* Added tests for aliases (some MIME preferred names only).
 
 2008-03-20	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 	* Release 1.002.

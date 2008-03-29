@@ -38,7 +38,7 @@ SYNOPSIS
         MIME::Charset::default("iso-8859-1");
         MIME::Charset::fallback("us-ascii");
 
-    Non-OOP functions (may be deprecated in near future):
+    Non-OO functions (may be deprecated in near future):
 
         use MIME::Charset qw(:info);
 
@@ -113,6 +113,11 @@ DESCRIPTION
         Get "Encode::Encoding" object to encode Unicode string using
         compatible charset recommended to be used for messages on Internet.
 
+        If optional CHARSET is specified, replace encoder (and output
+        charset name) of $charset object with those of CHARSET, therefore,
+        $charset object will be a converter between original charset and new
+        CHARSET.
+
     $charset->header_encoding
     header_encoding CHARSET
         Get recommended encoding scheme of CHARSET for message header.
@@ -142,7 +147,7 @@ DESCRIPTION
         will not be performed. So these options do not have any effects.
 
         Replacement => REPLACEMENT
-            Specifies error handling scheme. See "ERROR HANDLING".
+            Specifies error handling scheme. See "Error Handling".
 
         Detect7bit => YESNO
             Try auto-detecting 7-bit charset when CHARSET is not given.
@@ -190,7 +195,7 @@ DESCRIPTION
         will not be performed. So these options do not have any effects.
 
         Replacement => REPLACEMENT
-            Specifies error handling scheme. See "ERROR HANDLING".
+            Specifies error handling scheme. See "Error Handling".
 
         Detect7bit => YESNO
             Try auto-detecting 7-bit charset when CHARSET is not given.
@@ -310,6 +315,10 @@ DESCRIPTION
     "XMLCREF"
         Use "FB_PERLQQ", "FB_HTMLCREF" or "FB_XMLCREF" scheme defined by
         Encode module.
+
+    numeric values
+        Numeric values are also allowed. For more details see "Handling
+        Malformed Data" in Encode.
 
     If error handling scheme is not specified or unknown scheme is
     specified, "DEFAULT" will be assumed.

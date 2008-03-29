@@ -44,7 +44,7 @@ Manipulating module defaults:
     MIME::Charset::default("iso-8859-1");
     MIME::Charset::fallback("us-ascii");
 
-Non-OOP functions (may be deprecated in near future):
+Non-OO functions (may be deprecated in near future):
 
     use MIME::Charset qw(:info);
 
@@ -425,6 +425,11 @@ sub decoder($) {
 Get L<"Encode::Encoding"> object to encode Unicode string using compatible
 charset recommended to be used for messages on Internet.
 
+If optional CHARSET is specified, replace encoder (and output charset
+name) of $charset object with those of CHARSET, therefore,
+$charset object will be a converter between original charset and
+new CHARSET.
+
 =cut
 
 sub encoder($$;) {
@@ -498,7 +503,7 @@ conversion will not be performed.  So these options do not have any effects.
 
 =item Replacement => REPLACEMENT
 
-Specifies error handling scheme.  See L<"ERROR HANDLING">.
+Specifies error handling scheme.  See L<"Error Handling">.
 
 =item Detect7bit => YESNO
 
@@ -674,7 +679,7 @@ conversion will not be performed.  So these options do not have any effects.
 
 =item Replacement => REPLACEMENT
 
-Specifies error handling scheme.  See L<"ERROR HANDLING">.
+Specifies error handling scheme.  See L<"Error Handling">.
 
 =item Detect7bit => YESNO
 
@@ -766,15 +771,15 @@ sub _text_encode {
     }
 
     my $check = ($replacement and $replacement =~ /^\d+$/)?
-		$replacement:
-		{
-		 'CROAK' => FB_CROAK(),
-		 'STRICT' => FB_CROAK(),
-		 'FALLBACK' => FB_CROAK(), # special
-		 'PERLQQ' => FB_PERLQQ(),
-		 'HTMLCREF' => FB_HTMLCREF(),
-		 'XMLCREF' => FB_XMLCREF(),
-		}->{$replacement || ""} || 0;
+	$replacement:
+    {
+	'CROAK' => FB_CROAK(),
+	'STRICT' => FB_CROAK(),
+	'FALLBACK' => FB_CROAK(), # special
+	'PERLQQ' => FB_PERLQQ(),
+	'HTMLCREF' => FB_HTMLCREF(),
+	'XMLCREF' => FB_XMLCREF(),
+    }->{$replacement || ""} || 0;
 
     # Encode data by output charset if required.  If failed, fallback to
     # fallback charset.
@@ -1035,6 +1040,11 @@ Synonym is C<"STRICT">.
 
 Use C<FB_PERLQQ>, C<FB_HTMLCREF> or C<FB_XMLCREF>
 scheme defined by L<Encode> module.
+
+=item numeric values
+
+Numeric values are also allowed.
+For more details see L<Encode/Handling Malformed Data>.
 
 =back
 

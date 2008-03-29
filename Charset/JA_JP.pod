@@ -41,7 +41,7 @@ MIME::Charset::JA_JP - MIME のためのキャラクタセット情報
     MIME::Charset::default("iso-8859-1");
     MIME::Charset::fallback("us-ascii");
 
-非OOP関数 (近い将来に廃止):
+非OO関数 (近い将来に廃止):
 
     use MIME::Charset qw(:info);
 
@@ -79,9 +79,7 @@ MIME::Charset は、インターネット上での MIME
 B<キャラクタセット> とは、MIME での ``character set'' のことで、
 オクテットの列を文字の列に変換する方法を指す。
 これは、ISO/IEC における ``符号化文字集合'' (CCS) と
-``文字符合化法'' (CES) の両方の概念を包含する
-(この定義は不正確かもしれません。
-より正確な定義をご存じの方ご指南ください)。
+``文字符合化法'' (CES) の両方の概念を包含する。
 
 B<エンコーディング> とは、MIME でのそれのことで、
 メッセージ本体やメッセージヘッダ本体を印字可能な
@@ -150,6 +148,11 @@ L<"Encode::Encoding"> オブジェクトを返す。
 インターネット上の MIME
 メッセージで使うことを推奨される互換キャラクタセットでエンコードするのに使う
 L<"Encode::Encoding"> オブジェクトを返す。
+
+CHARSET 引数を指定した場合、$charset オブジェクトのエンコーダ
+(および出力キャラクタセット名) を、CHARSET のそれに置き換える。
+つまり、$charset オブジェクトは元のキャラクタセットから新たな
+CHARSET への変換器となる。
 
 =cut
 
@@ -440,6 +443,11 @@ C<"STRICT"> でも同じ。
 L<Encode> モジュールで定義している
 C<FB_PERLQQ>、C<FB_HTMLCREF>、C<FB_XMLCREF>
 の方式を使う。
+
+=item 数値
+
+数値を指定することもできる。
+詳細は L<Encode/Handling Malformed Data> を見てほしい。
 
 =back
 
