@@ -1,11 +1,12 @@
-2008-03-29	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
-	* Release 1.003.
+2008-03-30	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+	* Release 1.004.
 	* Added ESTI GSM 03.38 which won't be used for MIME
 	  messages (experimental).
 	* _Compat.pm: resolve_alias(): real aliasing taken from
 	  Encode module.
 	* Numeric values are allowed for ``Replacement'' options.
 	* Added tests for aliases (some MIME preferred names only).
+	* Bug Fix: Perl <=5.005: our is ``withdrawn''.
 
 2008-03-20	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 	* Release 1.002.
