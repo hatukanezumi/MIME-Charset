@@ -110,7 +110,7 @@ use Carp qw(croak);
 use constant USE_ENCODE => ($] >= 5.008001)? 'Encode': '';
 
 my @ENCODE_SUBS = qw(FB_CROAK FB_PERLQQ FB_HTMLCREF FB_XMLCREF
-		     from_to is_utf8 resolve_alias);
+		     is_utf8 resolve_alias);
 if (USE_ENCODE) {
     eval "use ".USE_ENCODE." \@ENCODE_SUBS;";
 } else {
@@ -121,7 +121,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.004';
+$VERSION = '1.005';
 
 ######## Private Attributes ########
 
@@ -275,8 +275,12 @@ eval { require MIME::Charset::Defaults; };
 
 ######## Private Constants ########
 
-my $NONASCIIRE = qr{
+my $NON7BITRE = qr{
     [^\x01-\x7e]
+}x;
+
+my $NONASCIIRE = qr{
+    [^\x09\x0a\x0d\x20\x21-\x7e]
 }x;
 
 my $ISO2022RE = qr{
@@ -385,7 +389,7 @@ not be same as encoding for message header.
 sub body_encoding($) {
     my $self = shift;
     return undef unless $self;
-    $self = MIME::Charset->new($self) unless ref $self;
+    $self = __PACKAGE__->new($self) unless ref $self;
     $self->{BodyEncoding};
 }
 
@@ -400,7 +404,7 @@ Get canonical name for charset.
 sub canonical_charset($) {
     my $self = shift;
     return undef unless $self;
-    $self = MIME::Charset->new($self) unless ref $self;
+    $self = __PACKAGE__->new($self) unless ref $self;
     $self->{InputCharset};
 }
 
@@ -420,6 +424,19 @@ sub decoder($) {
     $self->{Decoder};
 }
 
+=item $charset->dup
+
+Get a copy of charset object.
+
+=cut
+
+sub dup($) {
+    my $self = shift;
+    my $obj = __PACKAGE__->new(undef);
+    %{$obj} = %{$self};
+    $obj;
+}
+
 =item $charset->encoder([CHARSET])
 
 Get L<"Encode::Encoding"> object to encode Unicode string using compatible
@@ -436,7 +453,7 @@ sub encoder($$;) {
     my $self = shift;
     my $charset = shift;
     if ($charset) {
-	$charset = MIME::Charset->new($charset) unless ref $charset;
+	$charset = __PACKAGE__->new($charset) unless ref $charset;
 	$self->{OutputCharset} = $charset->{InputCharset};
 	$self->{Encoder} = $charset->{Decoder};
 	#XXX$self->{BodyEncoding} = $charset->{BodyEncoding};
@@ -460,7 +477,7 @@ for message body.
 sub header_encoding($) {
     my $self = shift;
     return undef unless $self;
-    $self = MIME::Charset->new($self) unless ref $self;
+    $self = __PACKAGE__->new($self) unless ref $self;
     $self->{HeaderEncoding};
 }
 
@@ -480,7 +497,7 @@ return the result of L<"canonical_charset">.
 sub output_charset($) {
     my $self = shift;
     return undef unless $self;
-    $self = MIME::Charset->new($self) unless ref $self;
+    $self = __PACKAGE__->new($self) unless ref $self;
     $self->{OutputCharset};
 }
 
@@ -530,7 +547,7 @@ sub body_encode {
 	$text = shift;
     } else {
 	$text = $self;
-	$self = MIME::Charset->new(shift);
+	$self = __PACKAGE__->new(shift);
     }
     my ($encoded, $charset) = &_text_encode($self, $text, @_);
     return ($encoded, undef, 'BASE64')
@@ -539,20 +556,15 @@ sub body_encode {
 
     # Determine transfer-encoding.
     my $enc;
-    my $dummy = $encoded;
-    eval {
-	from_to($dummy, $cset, "US-ASCII", FB_CROAK());
-    };
-    if (!$@ and $dummy eq $encoded) {
+    if ($encoded !~ /$NONASCIIRE/) {
 	$cset = "US-ASCII";
 	$enc = undef;
     } else {
-	$@ = '';
 	$enc = $charset->{BodyEncoding};
     }
 
     if (!$enc and $encoded !~ /\x00/) {	# Eliminate hostile NUL character.
-        if ($encoded =~ $NONASCIIRE) {	# String contains 8bit char(s).
+        if ($encoded =~ $NON7BITRE) {	# String contains 8bit char(s).
             $enc = '8BIT';
 	} elsif ($cset =~ $ISO2022RE) {	# ISO-2022-* outputs are 7BIT.
             $enc = '7BIT';
@@ -633,7 +645,7 @@ sub encoded_header_len($$$;) {
 	$s = $self;
 	$encoding = uc(shift);
 	$self  = shift;
-	$self = MIME::Charset->new($self) unless ref $self;
+	$self = __PACKAGE__->new($self) unless ref $self;
     }
 
     #FIXME:$encoding === undef
@@ -657,8 +669,7 @@ sub _enclen_B($) {
 
 sub _enclen_Q($) {
     my $s = shift;
-    my @o;
-    @o = ($s =~ /(\?|=|_|[^ \x21-\x7e])/gos);
+    my @o = ($s =~ m{([^- !*+/0-9A-Za-z])}gos);
     length($s) + scalar(@o) * 2;
 }
 
@@ -709,7 +720,7 @@ sub header_encode {
 	$text = shift;
     } else {
 	$text = $self;
-	$self = MIME::Charset->new(shift);
+	$self = __PACKAGE__->new(shift);
     }
     my ($encoded, $charset) = &_text_encode($self, $text, @_);
     return ($encoded, '8BIT', undef)
@@ -718,19 +729,14 @@ sub header_encode {
 
     # Determine encoding scheme.
     my $enc;
-    my $dummy = $encoded;
-    eval {
-	from_to($dummy, $cset, "US-ASCII", FB_CROAK());
-    };
-    if (!$@ and $dummy eq $encoded) {
+    if ($encoded !~ /$NONASCIIRE/) {
 	$cset = "US-ASCII";
 	$enc = undef;
     } else {
-	$@ = '';
 	$enc = $charset->{HeaderEncoding};
     }
 
-    if (!$enc and $encoded !~ $NONASCIIRE) {
+    if (!$enc and $encoded !~ $NON7BITRE) {
 	unless ($cset =~ $ISO2022RE) {	# ISO-2022-* outputs are 7BIT.
             $cset = 'US-ASCII';
         }
@@ -754,12 +760,12 @@ sub _text_encode {
     my $detect7bit = uc($params{'Detect7bit'} || $Config->{Detect7bit});
 
     unless ($charset and $charset->{InputCharset}) {
-	if ($s =~ $NONASCIIRE) {
+	if ($s =~ $NON7BITRE) {
 	    return ($s, undef);
 	} elsif ($detect7bit ne "NO") {
-	    $charset = MIME::Charset->new(&_detect_7bit_charset($s));
+	    $charset = __PACKAGE__->new(&_detect_7bit_charset($s));
 	} else {
-	    $charset = MIME::Charset->new($DEFAULT_CHARSET);
+	    $charset = __PACKAGE__->new($DEFAULT_CHARSET);
 	} 
     }
 
@@ -793,7 +799,7 @@ sub _text_encode {
 	    };
 	    if ($@) {
 		if ($replacement eq "FALLBACK" and $FALLBACK_CHARSET) {
-		    my $cset = MIME::Charset->new($FALLBACK_CHARSET);
+		    my $cset = __PACKAGE__->new($FALLBACK_CHARSET);
 		    # croak unknown charset
 		    croak "unknown charset ``$FALLBACK_CHARSET''"
 			unless $charset->{Decoder};
@@ -828,7 +834,7 @@ sub _detect_7bit_charset($) {
     foreach (@ESCAPE_SEQS) {
 	my ($seq, $cset) = @$_;
 	if (index($s, $seq) >= 0) {
-            my $decoder = MIME::Charset->new($cset);
+            my $decoder = __PACKAGE__->new($cset);
             next unless $decoder and $decoder->{Decoder};
             eval {
 		my $dummy = $s;
@@ -994,7 +1000,7 @@ sub recommended ($;$;$;$) {
 	$CHARSETS{$charset} = \@spec;
 	return @spec;
     } else {
-	$charset = MIME::Charset->new($charset) unless ref $charset;
+	$charset = __PACKAGE__->new($charset) unless ref $charset;
 	return map { $charset->{$_} } qw(HeaderEncoding BodyEncoding
 					 OutputCharset);
     }

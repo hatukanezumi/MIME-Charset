@@ -1,3 +1,11 @@
+2008-04-07	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+	* Release 1.005.
+	* _enclen_Q(): Restrict characters in encoded-word
+	  according to RFC 2047 section 5 (3).
+	* New method dup().
+	* body_encode() / header_encode(): Fix determination of
+	  US-ASCII: Works on pre-Encode environments.
+
 2008-03-30	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 	* Release 1.004.
 	* Added ESTI GSM 03.38 which won't be used for MIME
