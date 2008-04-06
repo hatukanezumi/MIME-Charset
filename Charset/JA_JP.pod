@@ -143,6 +143,12 @@ L<"Encode::Encoding"> オブジェクトを返す。
 
 =cut
 
+=item $charset->dup
+
+キャラクタセットオブジェクトを複写する。
+
+=cut
+
 =item $charset->encoder([CHARSET])
 
 インターネット上の MIME
