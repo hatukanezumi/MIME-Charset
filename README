@@ -109,6 +109,9 @@ DESCRIPTION
     $charset->decoder
         Get "Encode::Encoding" object to decode strings by charset.
 
+    $charset->dup
+        Get a copy of charset object.
+
     $charset->encoder([CHARSET])
         Get "Encode::Encoding" object to encode Unicode string using
         compatible charset recommended to be used for messages on Internet.
