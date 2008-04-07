@@ -121,7 +121,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.005';
+$VERSION = '1.006';
 
 ######## Private Attributes ########
 
@@ -155,6 +155,8 @@ my %CHARSETS = (# input		    header enc body enc output conv
 		'ISO-2022-JP' =>	['B',	undef,	undef],
 		'KOI8-R' =>		['B',	'B',	undef],
 		'UTF-8' =>		['S',	'B',	undef],
+		'HZ-GB-2312' =>		['B',	undef,	undef],
+		'UTF-7' =>		['Q',	undef,	undef],
 		'GSM03.38' =>		[undef,	undef,	undef], # not for MIME
 		# We're making this one up to represent raw unencoded 8bit
 		'8BIT' =>		[undef,	'B',	'ISO-8859-1'],
@@ -176,6 +178,7 @@ my %CHARSET_ALIASES = (# unpreferred		preferred
 		       "UNICODE-1-1-UTF-7" =>	"UTF-7", # RFC 1642 (obs.)
 		       "UTF8" =>		"UTF-8",
 		       "UTF-8-STRICT" =>	"UTF-8", # Perl internal use
+		       "HZ" =>			"HZ-GB-2312", # RFC 1842
 		       "GSM0338" =>		"GSM03.38",
 		       );
 
@@ -219,6 +222,7 @@ my %ENCODERS = (
 		    'ISO-2022-JP-3' => [['iso-2022-jp-3', 'Encode::JIS2K'], ],
 		    'SHIFT_JISX0213'=> [['shiftjisx0213', 'Encode::JIS2K'], ],
 		    'EUC-TW'        => [['euc-tw',      'Encode::HanExtra'], ],
+		    'HZ-GB-2312'    => [['hz'], ],	# Encode::CN
 		    'GSM03.38'      => [['gsm0338'], ],	# Encode::GSM0338
 		},
 );
@@ -284,7 +288,11 @@ my $NONASCIIRE = qr{
 }x;
 
 my $ISO2022RE = qr{
-    ^ISO-2022-
+    ISO-2022-.+
+}ix;
+
+my $ASCIITRANSRE = qr{
+    HZ-GB-2312 | UTF-7
 }ix;
 
 
@@ -321,6 +329,7 @@ sub new {
     my %params = @_;
     my $mapping = uc($params{'Mapping'} || $Config->{Mapping});
 
+    $charset = "HZ" if $charset =~ /\bhz.?gb.?2312$/i; # workaround
     $charset = resolve_alias($charset) || $charset;
     $charset = $CHARSET_ALIASES{uc($charset)} || uc($charset);
     my ($henc, $benc, $outcset);
@@ -556,7 +565,7 @@ sub body_encode {
 
     # Determine transfer-encoding.
     my $enc;
-    if ($encoded !~ /$NONASCIIRE/) {
+    if ($encoded !~ /$NONASCIIRE/ and $cset !~ /^($ASCIITRANSRE)$/) {
 	$cset = "US-ASCII";
 	$enc = undef;
     } else {
@@ -566,7 +575,7 @@ sub body_encode {
     if (!$enc and $encoded !~ /\x00/) {	# Eliminate hostile NUL character.
         if ($encoded =~ $NON7BITRE) {	# String contains 8bit char(s).
             $enc = '8BIT';
-	} elsif ($cset =~ $ISO2022RE) {	# ISO-2022-* outputs are 7BIT.
+	} elsif ($cset =~ /^($ISO2022RE|$ASCIITRANSRE)$/) {	# 7BIT.
             $enc = '7BIT';
         } else {			# Pure ASCII.
             $enc = '7BIT';
@@ -729,7 +738,7 @@ sub header_encode {
 
     # Determine encoding scheme.
     my $enc;
-    if ($encoded !~ /$NONASCIIRE/) {
+    if ($encoded !~ /$NONASCIIRE/ and $cset !~ /^($ASCIITRANSRE)$/) {
 	$cset = "US-ASCII";
 	$enc = undef;
     } else {
@@ -737,7 +746,7 @@ sub header_encode {
     }
 
     if (!$enc and $encoded !~ $NON7BITRE) {
-	unless ($cset =~ $ISO2022RE) {	# ISO-2022-* outputs are 7BIT.
+	unless ($cset =~ /^($ISO2022RE|$ASCIITRANSRE)$/) {	# 7BIT.
             $cset = 'US-ASCII';
         }
     } elsif ($enc eq 'S') {

@@ -1,7 +1,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 25 }
+BEGIN { plan tests => 26 }
 
 my @names = qw(
 	    US-ASCII
@@ -11,6 +11,7 @@ my @names = qw(
 	    ISO-8859-6-I ISO-8859-6-E ISO-8859-8-E ISO-8859-8-I
 	    GB2312 BIG5 KOI8-R
 	    UTF-8
+	    HZ-GB-2312
 	   );
 
 use MIME::Charset qw(:info);
