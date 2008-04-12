@@ -1,8 +1,8 @@
-2008-04-XX	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2008-04-12	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 	* Release 1.006.
 	* Workarounds for ``US-ASCII transformation'' charsets
 	  i.e. HZ-GB-2312 (RFC1842) and UTF-7 (RFC 2152).
-	* Added an alias test for HZ workaround.
+	* Added tests.
 
 2008-04-07	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 	* Release 1.005.

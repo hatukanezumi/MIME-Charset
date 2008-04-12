@@ -149,12 +149,12 @@ DESCRIPTION
         Unicode/multibyte support is disabled (see "USE_ENCODE"), conversion
         will not be performed. So these options do not have any effects.
 
-        Replacement => REPLACEMENT
-            Specifies error handling scheme. See "Error Handling".
-
         Detect7bit => YESNO
             Try auto-detecting 7-bit charset when CHARSET is not given.
             Default is "YES".
+
+        Replacement => REPLACEMENT
+            Specifies error handling scheme. See "Error Handling".
 
         3-item list of (*converted string*, *charset for output*,
         *transfer-encoding*) will be returned. *Transfer-encoding* will be
@@ -197,12 +197,12 @@ DESCRIPTION
         Unicode/multibyte support is disabled (see "USE_ENCODE"), conversion
         will not be performed. So these options do not have any effects.
 
-        Replacement => REPLACEMENT
-            Specifies error handling scheme. See "Error Handling".
-
         Detect7bit => YESNO
             Try auto-detecting 7-bit charset when CHARSET is not given.
             Default is "YES".
+
+        Replacement => REPLACEMENT
+            Specifies error handling scheme. See "Error Handling".
 
         3-item list of (*converted string*, *charset for output*, *encoding
         scheme*) will be returned. *Encoding scheme* will be either "B", "Q"

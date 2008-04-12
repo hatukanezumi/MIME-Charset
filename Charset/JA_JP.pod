@@ -206,14 +206,14 @@ Unicode/マルチバイト対応が有効になっていないとき (L<"USE_ENC
 
 =over 4
 
-=item Replacement => REPLACEMENT
-
-エラー処理法の指定。L<"エラー処理"> 参照。
-
 =item Detect7bit => YESNO
 
 CHARSET がないとき、7ビットのキャラクタセットを自動認識しようとする。
 既定は C<"YES">。
+
+=item Replacement => REPLACEMENT
+
+エラー処理法の指定。L<"エラー処理"> 参照。
 
 =back
 
@@ -283,14 +283,14 @@ Unicode/マルチバイト対応が有効になっていないとき (L<"USE_ENC
 
 =over 4
 
-=item Replacement => REPLACEMENT
-
-エラー処理法の指定。L<"エラー処理"> 参照。
-
 =item Detect7bit => YESNO
 
 CHARSET がないとき、7ビットのキャラクタセットを自動認識しようとする。
 既定は C<"YES">。
+
+=item Replacement => REPLACEMENT
+
+エラー処理法の指定。L<"エラー処理"> 参照。
 
 =back
 
@@ -424,7 +424,7 @@ C<Replacement> オプションには以下のものを指定できる:
 =item C<"DEFAULT">
 
 不正な文字を置き換え文字で置き換える。
-UCM に基づくエンコーダを持つキャラクタセットでは <subchar> を使う。
+UCM に基づくエンコーダを持つキャラクタセットでは <subchar> を使うことがある。
 
 =item C<"FALLBACK">
 

@@ -1,7 +1,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 12 }
+BEGIN { plan tests => 18 }
 
 use MIME::Charset qw(:trans);
 
@@ -16,47 +16,61 @@ my $null = MIME::Charset->new(undef);
 ($converted, $charset, $encoding) = $obj->body_encode($src);
 if (MIME::Charset::USE_ENCODE) {
     ok($converted eq $dst);
-    ok($charset eq "ISO-2022-JP");
-    ok($encoding eq "7BIT");
+    ok($charset, "ISO-2022-JP", $charset);
+    ok($encoding, "7BIT", $encoding);
 } else {
     ok($converted eq $src);
-    ok($charset eq "EUC-JP");
-    ok($encoding eq "8BIT");
+    ok($charset, "EUC-JP", $charset);
+    ok($encoding, "8BIT", $encoding);
 }
 
 # test get encodings for body with auto-detection of 7-bit
 ($converted, $charset, $encoding) = $null->body_encode($dst);
 if (MIME::Charset::USE_ENCODE) {
     ok($converted eq $dst);
-    ok($charset eq "ISO-2022-JP");
-    ok($encoding eq "7BIT");
+    ok($charset, "ISO-2022-JP", $charset);
+    ok($encoding, "7BIT", $encoding);
 } else {
     ok($converted eq $dst);
-    ok($charset eq "US-ASCII");
-    ok($encoding eq "7BIT");
+    ok($charset, "US-ASCII", $charset);
+    ok($encoding, "7BIT", $encoding);
 }
 
 # test get encodings for header
 ($converted, $charset, $encoding) = $obj->header_encode($src);
 if (MIME::Charset::USE_ENCODE) {
     ok($converted eq $dst);
-    ok($charset eq "ISO-2022-JP");
-    ok($encoding eq "B");
+    ok($charset, "ISO-2022-JP", $charset);
+    ok($encoding, "B", $encoding);
 } else {
     ok($converted eq $src);
-    ok($charset eq "EUC-JP");
-    ok($encoding eq "B");
+    ok($charset, "EUC-JP", $charset);
+    ok($encoding, "B", $encoding);
 }
 
 # test get encodings for header with auto-detection of 7-bit
 ($converted, $charset, $encoding) = $null->header_encode($dst);
 if (MIME::Charset::USE_ENCODE) {
     ok($converted eq $dst);
-    ok($charset eq "ISO-2022-JP");
-    ok($encoding eq "B");
+    ok($charset, "ISO-2022-JP", $charset);
+    ok($encoding, "B", $encoding);
 } else {
     ok($converted eq $dst);
-    ok($charset eq "US-ASCII");
-    ok(!defined $encoding);
+    ok($charset, "US-ASCII", $charset);
+    ok($encoding, undef, $encoding);
 }
+
+$obj = MIME::Charset->new("hz-gb-2312");
+$src = "~{<:Ky2;S{#,NpJ)l6HK!#~}~";
+
+($converted, $charset, $encoding) = $obj->header_encode($src);
+ok($converted eq $src);
+ok($charset, "HZ-GB-2312", $charset);
+ok($encoding, "B", $encoding);
+
+$src = "This doesn't contain non-ASCII.";
+($converted, $charset, $encoding) = $obj->header_encode($src);
+ok($converted eq $src);
+ok($charset, "US-ASCII", $charset);
+ok($encoding, undef, $encoding);
 
