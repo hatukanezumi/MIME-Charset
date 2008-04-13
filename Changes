@@ -1,3 +1,7 @@
+2008-XX-XX	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+	* Release 1.0XX.
+	* Bug Fix: CPAN RT #34909: Test failures (fixed at 1.006.1).
+
 2008-04-12	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 	* Release 1.006.
 	* Workarounds for ``US-ASCII transformation'' charsets
