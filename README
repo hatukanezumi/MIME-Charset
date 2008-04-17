@@ -107,7 +107,8 @@ DESCRIPTION
         Get canonical name for charset.
 
     $charset->decoder
-        Get "Encode::Encoding" object to decode strings by charset.
+        Get "Encode::Encoding" object to decode strings to Unicode by
+        charset.
 
     $charset->dup
         Get a copy of charset object.
@@ -174,8 +175,8 @@ DESCRIPTION
     $charset->encode(STRING [,CHECK])
         Encode STRING (Unicode or non-Unicode) using compatible charset
         recommended to be used for messages on Internet (if this module
-        knows it). Note that string will be decoded then encoded even if
-        compatible charset was equal to original charset.
+        knows it). Note that string will be decoded to Unicode then encoded
+        even if compatible charset was equal to original charset.
 
         Note: When Unicode/multibyte support is disabled (see "USE_ENCODE"),
         this function will die.

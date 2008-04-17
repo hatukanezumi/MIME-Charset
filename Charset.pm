@@ -626,9 +626,9 @@ sub encode($$$;) {
     unless (is_utf8($s) or $s =~ /[^\x00-\xFF]/) {
 	$s = $self->{Decoder}->decode($s, ($check & 0x1)? FB_CROAK(): 0);
     }
-    my $dec = $self->{Encoder}->encode($s, $check);
-    Encode::_utf8_off($dec); # workaround for RT #35120
-    $dec;
+    my $enc = $self->{Encoder}->encode($s, $check);
+    Encode::_utf8_off($enc); # workaround for RT #35120
+    $enc;
 }
 
 =item $charset->encoded_header_len(STRING [, ENCODING])
@@ -895,9 +895,9 @@ sub undecode($$$;) {
     my $self = shift;
     my $s = shift;
     my $check = shift || 0;
-    my $dec = $self->{Decoder}->encode($s, $check);
-    Encode::_utf8_off($dec); # workaround for RT #35120
-    $dec;
+    my $enc = $self->{Decoder}->encode($s, $check);
+    Encode::_utf8_off($enc); # workaround for RT #35120
+    $enc;
 }
 
 =head2 Manipulating Module Defaults
