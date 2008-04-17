@@ -1,6 +1,12 @@
 2008-XX-XX	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 	* Release 1.0XX.
 	* Bug Fix: CPAN RT #34909: Test failures (fixed at 1.006.1).
+	* Bug Fix: CPAN RT #35070: HZ words are encoded as US-ASCII:
+	  added workaround for CPAN RT #35120 (fixed at 1.006.2).
+	* Perl 5.11.0: Suppress ``Use of uninitialized value
+	  within @_ in uc'' warnings.
+	* JA_JP.pod: Clarify distinction between ``符号化'' (on
+	  charset) and ``エンコード'' (on encoding).
 
 2008-04-12	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 	* Release 1.006.

@@ -121,7 +121,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.006.1';
+$VERSION = '1.006.2';
 
 ######## Private Attributes ########
 
@@ -359,7 +359,7 @@ sub new {
 }
 
 sub _find_encoder($$) {
-    my $charset = uc(shift);
+    my $charset = uc(shift || "");
     return undef unless $charset;
     my $mapping = uc(shift);
     my ($spec, $name, $module, $encoder);
@@ -427,7 +427,7 @@ sub as_string($) {
 
 =item $charset->decoder
 
-Get L<"Encode::Encoding"> object to decode strings by charset.
+Get L<"Encode::Encoding"> object to decode strings to Unicode by charset.
 
 =cut
 
@@ -609,7 +609,7 @@ sub decode($$$;) {
 
 Encode STRING (Unicode or non-Unicode) using compatible charset recommended
 to be used for messages on Internet (if this module knows it).
-Note that string will be decoded then encoded even if compatible charset
+Note that string will be decoded to Unicode then encoded even if compatible charset
 was equal to original charset.
 
 B<Note>:
@@ -626,7 +626,9 @@ sub encode($$$;) {
     unless (is_utf8($s) or $s =~ /[^\x00-\xFF]/) {
 	$s = $self->{Decoder}->decode($s, ($check & 0x1)? FB_CROAK(): 0);
     }
-    $self->{Encoder}->encode($s, $check);
+    my $dec = $self->{Encoder}->encode($s, $check);
+    Encode::_utf8_off($dec); # workaround for RT #35120
+    $dec;
 }
 
 =item $charset->encoded_header_len(STRING [, ENCODING])
@@ -646,7 +648,7 @@ sub encoded_header_len($$$;) {
     my ($encoding, $s);
     if (ref $self) {
 	$s = shift;
-	$encoding = uc(shift) || $self->{HeaderEncoding};
+	$encoding = uc(shift || $self->{HeaderEncoding});
     } else {
 	$s = $self;
 	$encoding = uc(shift);
@@ -807,11 +809,13 @@ sub _text_encode {
 						Mapping => 'STANDARD');
 		    # croak unknown charset
 		    croak "unknown charset ``$FALLBACK_CHARSET''"
-			unless $charset->{Decoder};
-		    # charset transformation
+			unless $cset->{Decoder};
+		    # charset translation
+		    $charset = $charset->dup;
 		    $charset->encoder($cset);
 		    $encoded = $s;
 		    $encoded = $charset->encode($encoded, 0);
+		    # replace input & output charsets with fallback charset
 		    $cset->encoder($cset);
 		    $charset = $cset;
 		} else {
@@ -829,22 +833,20 @@ sub _text_encode {
 
     if ($encoded !~ /$NONASCIIRE/) { # maybe ASCII
 	# check ``ASCII transformation'' charsets
-	if ($charset->{OutputCharset} =~ /^($ASCIITRANSRE)$/ and
-	    $encoded =~ /[+~]/) {
+	if ($charset->{OutputCharset} =~ /^($ASCIITRANSRE)$/) {
 	    my $u = $encoded;
-	    if ($charset->encoder) {
+	    if (USE_ENCODE) {
 		$u = $charset->encoder->decode($encoded); # dec. by output
-	    } elsif (!USE_ENCODE) { # workaround for pre-Encode environment
+	    } elsif ($encoded =~ /[+~]/) { # workaround for pre-Encode env.
 		$u = "x$u";
-	    } else { # NOTREACHED
-		croak __PACKAGE__.": bug in _text_encode.  Report developer.";
 	    }
-	    $charset->encoder(__PACKAGE__->new($DEFAULT_CHARSET,
-					       Mapping => 'STANDARD'))
-		if $u eq $encoded;
+	    if ($u eq $encoded) {
+		$charset = $charset->dup;
+		$charset->encoder($DEFAULT_CHARSET);
+	    }
 	} elsif ($charset->{OutputCharset} ne "US-ASCII") {
-	    $charset->encoder(__PACKAGE__->new($DEFAULT_CHARSET,
-					       Mapping => 'STANDARD'));
+	    $charset = $charset->dup;
+	    $charset->encoder($DEFAULT_CHARSET);
 	}
     }
 
@@ -861,7 +863,7 @@ sub _detect_7bit_charset($) {
 	my ($seq, $cset) = @$_;
 	if (index($s, $seq) >= 0) {
             my $decoder = __PACKAGE__->new($cset);
-            next unless $decoder and $decoder->{Decoder};
+            next unless $decoder->{Decoder};
             eval {
 		my $dummy = $s;
 		$decoder->decode($dummy, FB_CROAK());
@@ -893,7 +895,9 @@ sub undecode($$$;) {
     my $self = shift;
     my $s = shift;
     my $check = shift || 0;
-    $self->{Decoder}->encode($s, $check);
+    my $dec = $self->{Decoder}->encode($s, $check);
+    Encode::_utf8_off($dec); # workaround for RT #35120
+    $dec;
 }
 
 =head2 Manipulating Module Defaults
