@@ -1,6 +1,7 @@
+#-*- perl -*-
 
 package MIME::Charset;
-use 5.005;
+require 5.005;
 
 =head1 NAME
 
