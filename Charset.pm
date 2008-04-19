@@ -121,7 +121,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.006.2';
+$VERSION = '1.006.3';
 
 ######## Private Attributes ########
 
@@ -364,7 +364,7 @@ sub _find_encoder($$) {
     my $mapping = uc(shift);
     my ($spec, $name, $module, $encoder);
 
-    my $preserveerr = $@;
+    local($@);
     foreach my $m (('EXTENDED', 'STANDARD')) {
 	next if $m eq 'EXTENDED' and $mapping ne 'EXTENDED';
 	$spec = $ENCODERS{$m}->{$charset};
@@ -375,12 +375,10 @@ sub _find_encoder($$) {
 		eval "use $module;";
 		next if $@;
 	    }
-	    $@ = $preserveerr;
 	    $encoder = Encode::find_encoding($name);
 	    return $encoder if ref $encoder;
 	}
     }
-    $@ = $preserveerr;
     return Encode::find_encoding($charset);
 }
 
