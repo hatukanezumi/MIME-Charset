@@ -89,8 +89,6 @@ The B<encoding> is that used in MIME to refer to a method of representing
 a body part or a header body as sequence(s) of printable US-ASCII
 characters.
 
-=over 4
-
 =cut
 
 use strict;
@@ -301,6 +299,8 @@ my $ASCIITRANSRE = qr{
 
 =head2 Constructor
 
+=over
+
 =item $charset = MIME::Charset->new([CHARSET [, OPTS]])
 
 Create charset object.
@@ -383,7 +383,11 @@ sub _find_encoder($$) {
     return Encode::find_encoding($charset);
 }
 
+=back
+
 =head2 Getting Informations of Charsets
+
+=over
 
 =item $charset->body_encoding
 
@@ -512,7 +516,11 @@ sub output_charset($) {
     $self->{OutputCharset};
 }
 
+=back
+
 =head2 Translating Text Data
+
+=over
 
 =item $charset->body_encode(STRING [, OPTS])
 
@@ -716,8 +724,6 @@ data) and I<encoding scheme> will be C<undef> (should not be encoded).
 I<Charset for output> will be C<"US-ASCII"> if and only if string does not
 contain any non-ASCII bytes.
 
-=back
-
 =cut
 
 sub header_encode {
@@ -899,9 +905,11 @@ sub undecode($$$;) {
     $enc;
 }
 
+=back
+
 =head2 Manipulating Module Defaults
 
-=over 4
+=over
 
 =item alias ALIAS [, CHARSET]
 
@@ -1035,7 +1043,11 @@ sub recommended ($;$;$;$) {
     }
 }
 
+=back
+
 =head2 Constants
+
+=over
 
 =item USE_ENCODE
 
@@ -1044,10 +1056,14 @@ Non-empty string will be set when Unicode and multibyte support is enabled.
 Currently, this flag will be non-empty on Perl 5.8.1 or later and
 empty string on earlier versions of Perl.
 
+=back
+
 =head2 Error Handling
 
 L<"body_encode"> and L<"header_encode"> accept following C<Replacement>
 options:
+
+=over
 
 =item C<"DEFAULT">
 

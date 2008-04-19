@@ -30,10 +30,8 @@ provides:
         version:                   1.006.3
     MIME::Charset::Defaults:
         file:                      Charset/Defaults.pm.sample
-        version:                   1.006.3
     MIME::Charset::JA_JP:
         file:                      Charset/JA_JP.pod
-        version:                   1.006.3
 resources:
     repository: http://hatuka.nezumi.nu/repos/MIME-Charset/
 meta-spec:

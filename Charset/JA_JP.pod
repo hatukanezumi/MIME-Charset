@@ -85,12 +85,12 @@ B<エンコーディング> とは、MIME でのそれのことで、
 メッセージ本体やメッセージヘッダ本体を印字可能な
 US-ASCII 文字の列として表現する方法を指す。
 
-=over 4
-
 
 =cut
 
 =head2 コンストラクタ
+
+=over
 
 =item $charset = MIME::Charset->new([CHARSET [, OPTS]])
 
@@ -114,7 +114,11 @@ C<"STANDARD"> は標準化されている厳密なマッピングを使う。
 
 =cut
 
+=back
+
 =head2 キャラクタセット情報の取得
+
+=over
 
 =item $charset->body_encoding
 
@@ -189,7 +193,11 @@ Unicode/マルチバイト対応が有効になっていないとき (L<"USE_ENC
 
 =cut
 
+=back
+
 =head2 テキストデータの変換
+
+=over
 
 =item $charset->body_encode(STRING [, OPTS])
 
@@ -305,9 +313,6 @@ I<出力のキャラクタセット> が決定できず、I<変換ずみの文�
 I<出力のキャラクタセット> が C<"US-ASCII">
 となるのは、文字列が ASCII以外のバイトを含まないときに限る。
 
-=back
-
-
 =cut
 
 =item $charset->undecode(STRING [,CHECK])
@@ -322,9 +327,11 @@ Unicode/マルチバイト対応が有効になっていないとき (L<"USE_ENC
 
 =cut
 
+=back
+
 =head2 モジュール既定値の操作
 
-=over 4
+=over
 
 =item alias ALIAS [, CHARSET]
 
@@ -408,7 +415,11 @@ L<"header_encoding">、L<"body_encoding">、L<"output_charset"> を使ってほ�
 
 =cut
 
+=back
+
 =head2 定数
+
+=over
 
 =item USE_ENCODE
 
@@ -416,10 +427,14 @@ Unicode/マルチバイト対応フラグ。
 Unicode とマルチバイトへの対応が有効になっているときは、空でない文字列が設定されている。
 現在、このフラグは Perl 5.8.1 以降で空でなく、それより以前の Perl では空の文字列。
 
+=back
+
 =head2 エラー処理
 
 L<"body_encode"> と L<"header_encode"> の
 C<Replacement> オプションには以下のものを指定できる:
+
+=over
 
 =item C<"DEFAULT">
 
