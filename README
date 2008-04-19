@@ -9,7 +9,7 @@ SYNOPSIS
     Getting charset informations:
 
         $benc = $charset->body_encoding; # e.g. "Q"
-        $cset = $charset->canonical_charset; # e.g. "US-ASCII"
+        $cset = $charset->as_string; # e.g. "US-ASCII"
         $henc = $charset->header_encoding; # e.g. "S"
         $cset = $charset->output_charset; # e.g. "ISO-2022-JP"
 
@@ -18,21 +18,24 @@ SYNOPSIS
         ($text, $charset, $encoding) =
             $charset->header_encode(
                "\xc9\xc2\xc5\xaa\xc0\xde\xc3\xef\xc5\xaa".
-               "\xc7\xd1\xca\xaa\xbd\xd0\xce\xcf\xb4\xef");
-        # ...returns e.g. (<converted>, "ISO-2022-JP", "B");
+               "\xc7\xd1\xca\xaa\xbd\xd0\xce\xcf\xb4\xef",
+               Charset => 'euc-jp');
+        # ...returns e.g. (<converted>, "ISO-2022-JP", "B").
 
         ($text, $charset, $encoding) =
             $charset->body_encode(
                 "Collectioneur path\xe9tiquement ".
-                "\xe9clectique de d\xe9chets");
-        # ...returns e.g. (<original>, "ISO-8859-1", "QUOTED-PRINTABLE");
+                "\xe9clectique de d\xe9chets",
+                Charset => 'latin1');
+        # ...returns e.g. (<original>, "ISO-8859-1", "QUOTED-PRINTABLE").
 
         $len = $charset->encoded_header_len(
-            "Perl\xe8\xa8\x80\xe8\xaa\x9e", "b"); # e.g. 28
+            "Perl\xe8\xa8\x80\xe8\xaa\x9e",
+            Charset => 'utf-8',
+            Encoding => "b");
+        # ...returns e.g. 28.
 
     Manipulating module defaults:
-
-        use MIME::Charset;
 
         MIME::Charset::alias("csEUCKR", "euc-kr");
         MIME::Charset::default("iso-8859-1");
@@ -172,6 +175,9 @@ DESCRIPTION
         Note: When Unicode/multibyte support is disabled (see "USE_ENCODE"),
         this function will die.
 
+    detect_7bit_charset STRING
+        Guess 7-bit charset that may encode a string STRING.
+
     $charset->encode(STRING [,CHECK])
         Encode STRING (Unicode or non-Unicode) using compatible charset
         recommended to be used for messages on Internet (if this module
@@ -216,11 +222,11 @@ DESCRIPTION
         bytes.
 
     $charset->undecode(STRING [,CHECK])
-    Encode Unicode string STRING to byte string by input charset of
-    $charset. This is equivalent to "$charset->decoder->encode()".
+        Encode Unicode string STRING to byte string by input charset of
+        $charset. This is equivalent to "$charset->decoder->encode()".
 
-    Note: When Unicode/multibyte support is disabled (see "USE_ENCODE"),
-    this function will die.
+        Note: When Unicode/multibyte support is disabled (see "USE_ENCODE"),
+        this function will die.
 
   Manipulating Module Defaults
     alias ALIAS [, CHARSET]
@@ -297,8 +303,8 @@ DESCRIPTION
         versions of Perl.
 
   Error Handling
-        "body_encode" and "header_encode" accept following "Replacement"
-        options:
+    "body_encode" and "header_encode" accept following "Replacement"
+    options:
 
     "DEFAULT"
         Put a substitution character in place of a malformed character. For
@@ -341,10 +347,11 @@ VERSION
 SEE ALSO
     Multipurpose Internet Mail Extensions (MIME).
 
-AUTHORS
-    Copyright (C) 2006-2008 Hatuka*nezumi - IKEDA Soji
-    <hatuka(at)nezumi.nu>.
+AUTHOR
+    Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>
 
-    All rights reserved. This program is free software; you can redistribute
-    it and/or modify it under the same terms as Perl itself.
+COPYRIGHT
+    Copyright (C) 2006-2008 Hatuka*nezumi - IKEDA Soji. This program is free
+    software; you can redistribute it and/or modify it under the same terms
+    as Perl itself.
 

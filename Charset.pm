@@ -1,7 +1,7 @@
 #-*- perl -*-
 
 package MIME::Charset;
-require 5.005;
+use 5.005;
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ MIME::Charset - Charset Informations for MIME
 Getting charset informations:
 
     $benc = $charset->body_encoding; # e.g. "Q"
-    $cset = $charset->canonical_charset; # e.g. "US-ASCII"
+    $cset = $charset->as_string; # e.g. "US-ASCII"
     $henc = $charset->header_encoding; # e.g. "S"
     $cset = $charset->output_charset; # e.g. "ISO-2022-JP"
 
@@ -25,21 +25,24 @@ Translating text data:
     ($text, $charset, $encoding) =
         $charset->header_encode(
            "\xc9\xc2\xc5\xaa\xc0\xde\xc3\xef\xc5\xaa".
-           "\xc7\xd1\xca\xaa\xbd\xd0\xce\xcf\xb4\xef");
-    # ...returns e.g. (<converted>, "ISO-2022-JP", "B");
+           "\xc7\xd1\xca\xaa\xbd\xd0\xce\xcf\xb4\xef",
+           Charset => 'euc-jp');
+    # ...returns e.g. (<converted>, "ISO-2022-JP", "B").
 
     ($text, $charset, $encoding) =
         $charset->body_encode(
             "Collectioneur path\xe9tiquement ".
-            "\xe9clectique de d\xe9chets");
-    # ...returns e.g. (<original>, "ISO-8859-1", "QUOTED-PRINTABLE");
+            "\xe9clectique de d\xe9chets",
+            Charset => 'latin1');
+    # ...returns e.g. (<original>, "ISO-8859-1", "QUOTED-PRINTABLE").
 
     $len = $charset->encoded_header_len(
-        "Perl\xe8\xa8\x80\xe8\xaa\x9e", "b"); # e.g. 28
+        "Perl\xe8\xa8\x80\xe8\xaa\x9e",
+        Charset => 'utf-8',
+        Encoding => "b");
+    # ...returns e.g. 28.
 
 Manipulating module defaults:
-
-    use MIME::Charset;
 
     MIME::Charset::alias("csEUCKR", "euc-kr");
     MIME::Charset::default("iso-8859-1");
@@ -120,7 +123,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.006.3';
+$VERSION = '1.007_01';
 
 ######## Private Attributes ########
 
@@ -612,6 +615,39 @@ sub decode($$$;) {
     $self->{Decoder}->decode($s, $check);
 }
 
+=item detect_7bit_charset STRING
+
+Guess 7-bit charset that may encode a string STRING.
+
+=cut
+
+sub detect_7bit_charset($) {
+    return $DEFAULT_CHARSET unless USE_ENCODE;
+    my $s = shift;
+    return $DEFAULT_CHARSET unless $s;
+
+    # Try to detect 7-bit escape sequences.
+    foreach (@ESCAPE_SEQS) {
+	my ($seq, $cset) = @$_;
+	if (index($s, $seq) >= 0) {
+            my $decoder = __PACKAGE__->new($cset);
+            next unless $decoder->{Decoder};
+            eval {
+		my $dummy = $s;
+		$decoder->decode($dummy, FB_CROAK());
+	    };
+	    if ($@) {
+		next;
+	    }
+	    return $decoder->{InputCharset};
+	}
+    }
+
+    # How about HZ, VIQR, UTF-7, ...?
+
+    return $DEFAULT_CHARSET;
+}
+
 =item $charset->encode(STRING [,CHECK])
 
 Encode STRING (Unicode or non-Unicode) using compatible charset recommended
@@ -775,7 +811,7 @@ sub _text_encode {
 	if ($s =~ $NON7BITRE) {
 	    return ($s, undef);
 	} elsif ($detect7bit ne "NO") {
-	    $charset = __PACKAGE__->new(&_detect_7bit_charset($s));
+	    $charset = __PACKAGE__->new(&detect_7bit_charset($s));
 	} else {
 	    $charset = __PACKAGE__->new($DEFAULT_CHARSET,
 					Mapping => 'STANDARD');
@@ -856,33 +892,6 @@ sub _text_encode {
     }
 
     return ($encoded, $charset);
-}
-
-sub _detect_7bit_charset($) {
-    return $DEFAULT_CHARSET unless USE_ENCODE;
-    my $s = shift;
-    return $DEFAULT_CHARSET unless $s;
-
-    # Try to detect 7-bit escape sequences.
-    foreach (@ESCAPE_SEQS) {
-	my ($seq, $cset) = @$_;
-	if (index($s, $seq) >= 0) {
-            my $decoder = __PACKAGE__->new($cset);
-            next unless $decoder->{Decoder};
-            eval {
-		my $dummy = $s;
-		$decoder->decode($dummy, FB_CROAK());
-	    };
-	    if ($@) {
-		next;
-	    }
-	    return $decoder->{InputCharset};
-	}
-    }
-
-    # How about HZ, VIQR, UTF-7, ...?
-
-    return $DEFAULT_CHARSET;
 }
 
 =item $charset->undecode(STRING [,CHECK])
@@ -1119,12 +1128,15 @@ L<http://hatuka.nezumi.nu/repos/MIME-Charset/>.
 
 Multipurpose Internet Mail Extensions (MIME).
 
-=head1 AUTHORS
+=head1 AUTHOR
 
-Copyright (C) 2006-2008 Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>.
+Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>
 
-All rights reserved.  This program is free software; you can redistribute
-it and/or modify it under the same terms as Perl itself.
+=head1 COPYRIGHT
+
+Copyright (C) 2006-2008 Hatuka*nezumi - IKEDA Soji.
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
 
 =cut
 
