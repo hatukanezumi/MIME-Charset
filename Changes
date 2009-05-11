@@ -1,6 +1,7 @@
-2008-XX-XX	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2008-05-11	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
-	* Release X.XXX.
+	* Release 1.007_01.
+	* Supports Perl 5.8.0.
 	* New function: detect_7bit_charset().
 	* Bundle inc::Module::Install.
 	* Corrected META.yml & PODs.  Removed duplicated docs.

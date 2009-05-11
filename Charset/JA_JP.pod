@@ -1,7 +1,5 @@
 #-*- perl -*-
 
-$VERSION = '1.007_01';
-
 =encoding utf-8
 
 =head1 NAME
@@ -151,6 +149,12 @@ C<undef> (伝送エンコードしなくてよい --- 7BIT か 8BIT)
 
 キャラクタセットを Unicode に復号するのに使う
 L<"Encode::Encoding"> オブジェクトを返す。
+
+=cut
+
+=item detect_7bit_charset STRING
+
+文字列 STRING を符号化している7 ビットキャラクタセットを推測する。
 
 =cut
 
@@ -432,7 +436,7 @@ L<"header_encoding">、L<"body_encoding">、L<"output_charset"> を使ってほ�
 
 Unicode/マルチバイト対応フラグ。
 Unicode とマルチバイトへの対応が有効になっているときは、空でない文字列が設定されている。
-現在、このフラグは Perl 5.8.1 以降で空でなく、それより以前の Perl では空の文字列。
+現在、このフラグは Perl 5.8.0 以降で空でなく、それより以前の Perl では空の文字列。
 
 =back
 
@@ -505,7 +509,7 @@ Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006-2008 Hatuka*nezumi - IKEDA Soji.
+Copyright (C) 2006-2009 Hatuka*nezumi - IKEDA Soji.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 

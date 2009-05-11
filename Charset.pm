@@ -109,7 +109,7 @@ use Exporter;
 		);
 use Carp qw(croak);
 
-use constant USE_ENCODE => ($] >= 5.008001)? 'Encode': '';
+use constant USE_ENCODE => ($] >= 5.008)? 'Encode': '';
 
 my @ENCODE_SUBS = qw(FB_CROAK FB_PERLQQ FB_HTMLCREF FB_XMLCREF
 		     is_utf8 resolve_alias);
@@ -648,6 +648,10 @@ sub detect_7bit_charset($) {
     return $DEFAULT_CHARSET;
 }
 
+sub _detect_7bit_charset {
+    detect_7bit_charset(@_);
+}
+
 =item $charset->encode(STRING [,CHECK])
 
 Encode STRING (Unicode or non-Unicode) using compatible charset recommended
@@ -1062,7 +1066,7 @@ sub recommended ($;$;$;$) {
 
 Unicode/multibyte support flag.
 Non-empty string will be set when Unicode and multibyte support is enabled.
-Currently, this flag will be non-empty on Perl 5.8.1 or later and
+Currently, this flag will be non-empty on Perl 5.8.0 or later and
 empty string on earlier versions of Perl.
 
 =back
@@ -1134,7 +1138,7 @@ Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006-2008 Hatuka*nezumi - IKEDA Soji.
+Copyright (C) 2006-2009 Hatuka*nezumi - IKEDA Soji.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
