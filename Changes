@@ -1,4 +1,12 @@
-2008-05-11	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2009-05-12	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
+
+	* Release 1.007_02.
+	* Charcet/CP932.pm: Supports extended mappings for
+	  ISO-2022-JP/EUC-JP by those of eucJP-ms, as CP51932 mungles
+	  accented latin characters and ISO-2022-JP-1 does not support
+	  NEC/IBM extended mappings.
+
+2009-05-11	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.007_01.
 	* Supports Perl 5.8.0.
@@ -6,7 +14,7 @@
 	* Bundle inc::Module::Install.
 	* Corrected META.yml & PODs.  Removed duplicated docs.
 
-2008-04-17	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2008-04-17	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.006.2 - bug fixes only; no new features.
 	* Bug Fix: Perl >= 5.8.1: CPAN RT #34909: Test failures.
@@ -17,14 +25,14 @@
 	* JA_JP.pod: Clarify distinction between ``符号化'' (on
 	  charset) and ``エンコード'' (on encoding).
 
-2008-04-12	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2008-04-12	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.006.
 	* Workarounds for ``US-ASCII transformation'' charsets
 	  i.e. HZ-GB-2312 (RFC1842) and UTF-7 (RFC 2152).
 	* Added tests.
 
-2008-04-07	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2008-04-07	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.005.
 	* _enclen_Q(): Restrict characters in encoded-word
@@ -33,7 +41,7 @@
 	* body_encode() / header_encode(): Fix determination of
 	  US-ASCII: Works on pre-Encode environments.
 
-2008-03-30	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2008-03-30	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.004.
 	* Added ESTI GSM 03.38 which won't be used for MIME
@@ -44,14 +52,14 @@
 	* Added tests for aliases (some MIME preferred names only).
 	* Bug Fix: Perl <=5.005: our is ``withdrawn''.
 
-2008-03-20	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2008-03-20	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.002.
 	* New method undecode().
 	* encoder(): added argument to set instance.
 	* Cleanup PODs.
 
-2008-03-15	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2008-03-15	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.001.
 	* Bug fix: Detect7bit options have no effect by OO method
@@ -66,36 +74,36 @@
 	* New feature: configuration file to override module
 	  defaults. See "Configuration File" section.
 
-2008-03-04	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2008-03-04	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.000.
 	* Added OOP methods (non-OOP functions may be deprecated
 	  in near future).
 
-2006-12-08	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2006-12-08	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 0.044.
 	* Fix on 'UTF-8-STRICT', new canonical name of 'UTF-8' by 
 	  Encode module (approximately 2.14).
 
-2006-11-16	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2006-11-16	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 0.043.
 	* No changes on codes.
 	* Change of Charset-ja_JP.pod (former Charset/ja_JP.pod).
 	* Charset.pm: Added information of development version.
 
-2006-10-22	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2006-10-22	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 0.042.
 	* Added ja_JP pod.
 
-2006-10-17	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2006-10-17	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 0.04.1
 	* Bug fix: Handle wide characters exactly.
 
-2006-10-13	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2006-10-13	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 0.04.
 	* Supports Perl 5.005 or later.
@@ -103,7 +111,7 @@
 	  USE_ENCODE flag was introduced.
 	* decode_mimewords(): Added 'Charset' option.
 
-2006-10-09	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2006-10-09	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 0.03.
 	* New function: encoded_header_len.
@@ -112,7 +120,7 @@
 	* Typos on Encode::FB_*.
 	* More test cases.
 
-2006-10-07	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2006-10-07	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 0.02.
 	* Fix exports.
@@ -120,6 +128,6 @@
 	* Added synopsis.
 	* Other typos.
 
-2006-10-06	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2006-10-06	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 0.01.  Initial CPAN upload.

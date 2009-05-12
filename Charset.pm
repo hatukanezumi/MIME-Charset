@@ -123,7 +123,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.007_01';
+$VERSION = '1.007_02';
 
 ######## Private Attributes ########
 
@@ -200,9 +200,13 @@ my %ENCODERS = (
 		    'ISO-8859-9' => [['cp1254'], ],     # Encode::Byte
 		    'ISO-8859-13'=> [['cp1257'], ],     # Encode::Byte
 		    'GB2312'     => [['cp936'], ],      # Encode::CN
-		    'EUC-JP'     => [['cp51932',        'Encode::EUCJPMS'], ],
+		    'EUC-JP'     => [
+				     ['x-8biteucjpms', 'MIME::Charset::CP932'],
+				     # ['cp51932',        'Encode::EUCJPMS'],
+				    ],
 		    'ISO-2022-JP'=> [
-				     ['cp50220',        'Encode::EUCJPMS'],
+				     ['x-7biteucjpms', 'MIME::Charset::CP932'],
+				     # ['cp50220',      'Encode::EUCJPMS'],
 				     # ['cp50221',      'Encode::EUCJPMS'],
 				     ['iso-2022-jp-ms', 'Encode::ISO2022JPMS'],
 				     ['iso-2022-jp-1'], # Encode::JP (note*)
