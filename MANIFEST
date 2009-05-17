@@ -28,4 +28,5 @@ t/02ooenclen.t
 t/03info.t
 t/03ooinfo.t
 t/04alias.t
+t/05jp.t
 t/pod.t

@@ -123,7 +123,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.007_02';
+$VERSION = '1.007';
 
 ######## Private Attributes ########
 
@@ -201,17 +201,23 @@ my %ENCODERS = (
 		    'ISO-8859-13'=> [['cp1257'], ],     # Encode::Byte
 		    'GB2312'     => [['cp936'], ],      # Encode::CN
 		    'EUC-JP'     => [
-				     ['x-8biteucjpms', 'MIME::Charset::CP932'],
+				     ['x-8biteucjpascii',
+				      		       'MIME::Charset::CP932'],
 				     # ['cp51932',        'Encode::EUCJPMS'],
 				    ],
 		    'ISO-2022-JP'=> [
-				     ['x-7biteucjpms', 'MIME::Charset::CP932'],
+				     ['x-7biteucjpascii',
+				      		       'MIME::Charset::CP932'],
 				     # ['cp50220',      'Encode::EUCJPMS'],
 				     # ['cp50221',      'Encode::EUCJPMS'],
 				     ['iso-2022-jp-ms', 'Encode::ISO2022JPMS'],
 				     ['iso-2022-jp-1'], # Encode::JP (note*)
 				    ],
-		    'SHIFT_JIS'  => [['cp932'], ],      # Encode::JP
+		    'SHIFT_JIS'  => [
+				     # ['x-shifteucjpascii',
+				     # 		       'MIME::Charset::CP932'],
+				     ['cp932'],		# Encode::JP
+				    ],
 		    'EUC-KR'     => [['cp949'], ],      # Encode::KR
 		    'BIG5'       => [
 				     # ['big5plus',     'Encode::HanExtra'],
@@ -243,7 +249,7 @@ my @ESCAPE_SEQS = (
 		   ["\033(J",	"ISO-2022-JP"],	# ditto
 		   ["\033(I",	"ISO-2022-JP"],	# ditto (nonstandard)
 		   ["\033\$(D",	"ISO-2022-JP"],	# RFC 2237 (note*)
-		   # Folloing sequences are less commonly used.
+		   # Following sequences are less commonly used.
 		   ["\033\$)C",	"ISO-2022-KR"],	# RFC 1557
 		   ["\033\$)A",	"ISO-2022-CN"], # RFC 1922
 		   ["\033\$A",	"ISO-2022-CN"], # ditto (nonstandard)
@@ -312,16 +318,16 @@ my $ASCIITRANSRE = qr{
 
 Create charset object.
 
-OPTS may accept following key-value pairs.
+OPTS may accept following key-value pair.
 B<NOTE>:
 When Unicode/multibyte support is disabled (see L<"USE_ENCODE">),
-conversion will not be performed.  So these options do not have any effects.
+conversion will not be performed.  So this option do not have any effects.
 
 =over 4
 
 =item Mapping => MAPTYPE
 
-Specify extended mappings actually used for charset names.
+Whether to extend mappings actually used for charset names or not.
 C<"EXTENDED"> uses extended mappings.
 C<"STANDARD"> uses standardized strict mappings.
 Default is C<"EXTENDED">.

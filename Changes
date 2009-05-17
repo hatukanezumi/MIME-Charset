@@ -1,7 +1,20 @@
+2009-05-17	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
+
+	* Release 1.007.
+	* Charset/CP932.pm: Changes:
+	- eucJP-ascii was chosen instead of eucJP-ms, as latter will break
+	  standardized mappings.
+	- 7-bit counterpart of eucJP-ascii also accepts JIS X 0201 Latin:
+	  two “national use” characters (5/12 YEN SIGN & 7/14 OVERLINE)
+	  are given one-way mappings to JIS X 0208.
+	- Shift-encoding counterpart hasn't been implemented yet: lack
+	  of fallback mappings.
+	* Fix: Perl 5.6.x - skip tests with older POD::Simple.
+
 2009-05-12	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.007_02.
-	* Charcet/CP932.pm: Supports extended mappings for
+	* Charset/CP932.pm: Supports extended mappings for
 	  ISO-2022-JP/EUC-JP by those of eucJP-ms, as CP51932 mungles
 	  accented latin characters and ISO-2022-JP-1 does not support
 	  NEC/IBM extended mappings.
