@@ -1,8 +1,7 @@
 use strict;
 use Test::More;
-eval "use Pod::Simple 2.06";
-if ($@) {
-    plan skip_all => "Pod::Simple 2.05 or later required for testing POD";
+if ($] < 5.007003 ) {
+    plan skip_all => "Perl 5.7.3 or later required for testing utf-8 POD";
 } else {
     eval "use Test::Pod 1.00";
     if ($@) {

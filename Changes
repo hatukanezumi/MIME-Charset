@@ -1,3 +1,8 @@
+2009-05-19	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
+
+	* Release 1.007.1 - no new features
+	* Fix: Skip all pod tests on pre-UTF8 Perl.
+
 2009-05-17	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.007.
