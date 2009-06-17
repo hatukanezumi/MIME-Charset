@@ -13,7 +13,7 @@ optional_features:
 - ja_extended:
     description: Extended mappings by Japanese codepages
     requires:
-        Encode::EUCJPMS:           0.06
+        Encode::EUCJPASCII:        0.02
 - jis2000:
     description: Additional mappings for JIS X 0213:2000
     requires:

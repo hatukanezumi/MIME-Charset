@@ -2,7 +2,6 @@ ARTISTIC
 Changes
 Charset.pm
 Charset/_Compat.pm
-Charset/CP932.pm
 Charset/Defaults.pm.sample
 Charset/JA_JP.pod
 GPL

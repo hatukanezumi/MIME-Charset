@@ -201,21 +201,18 @@ my %ENCODERS = (
 		    'ISO-8859-13'=> [['cp1257'], ],     # Encode::Byte
 		    'GB2312'     => [['cp936'], ],      # Encode::CN
 		    'EUC-JP'     => [
-				     ['x-8biteucjpascii',
-				      		       'MIME::Charset::CP932'],
-				     # ['cp51932',        'Encode::EUCJPMS'],
+				     ['eucJP-ascii',	'Encode::EUCJPASCII'],
+				     # ['cp51932',	'Encode::EUCJPMS'],
 				    ],
 		    'ISO-2022-JP'=> [
-				     ['x-7biteucjpascii',
-				      		       'MIME::Charset::CP932'],
+				     ['x-iso2022jp-ascii',
+				      			'Encode::EUCJPASCII'],
+				     # ['iso-2022-jp-ms','Encode::ISO2022JPMS'],
 				     # ['cp50220',      'Encode::EUCJPMS'],
 				     # ['cp50221',      'Encode::EUCJPMS'],
-				     ['iso-2022-jp-ms', 'Encode::ISO2022JPMS'],
 				     ['iso-2022-jp-1'], # Encode::JP (note*)
 				    ],
 		    'SHIFT_JIS'  => [
-				     # ['x-shifteucjpascii',
-				     # 		       'MIME::Charset::CP932'],
 				     ['cp932'],		# Encode::JP
 				    ],
 		    'EUC-KR'     => [['cp949'], ],      # Encode::KR
