@@ -1,20 +1,15 @@
-2009-05-19	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
+2009-06-16	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
-	* Release 1.007.1 - no new features
+	* Release 1.007.1.
+	* Changes:
+	- eucJP-ascii and its 7-bit counterpart was chosen instead of
+	  eucJP-ms, as latter will occasionally break standardized mappings.
+	  Shift-encoding counterpart hasn't been implemented yet.
 	* Fix: Skip all pod tests on pre-UTF8 Perl.
 
 2009-05-17	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
-	* Release 1.007.
-	* Charset/CP932.pm: Changes:
-	- eucJP-ascii was chosen instead of eucJP-ms, as latter will break
-	  standardized mappings.
-	- 7-bit counterpart of eucJP-ascii also accepts JIS X 0201 Latin:
-	  two “national use” characters (5/12 YEN SIGN & 7/14 OVERLINE)
-	  are given one-way mappings to JIS X 0208.
-	- Shift-encoding counterpart hasn't been implemented yet: lack
-	  of fallback mappings.
-	* Fix: Perl 5.6.x - skip tests with older POD::Simple.
+	* Release 1.007 - not really released.
 
 2009-05-12	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 

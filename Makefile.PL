@@ -14,7 +14,7 @@ if ( $] >= 5.008 ) {
     include 'Module::AutoInstall';
     feature 'Extended mappings by Japanese codepages',
       -default          => 0,
-      'Encode::EUCJPMS' => '0.06';
+      'Encode::EUCJPASCII' => '0.02';
     feature 'Additional mappings for JIS X 0213:2000',
       -default        => 0,
       'Encode::JIS2K' => '0.02';
