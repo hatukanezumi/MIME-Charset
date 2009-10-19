@@ -123,14 +123,14 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.007.1';
+$VERSION = '1.008';
 
 ######## Private Attributes ########
 
 my $DEFAULT_CHARSET = 'US-ASCII';
 my $FALLBACK_CHARSET = 'UTF-8';
 
-# This table was borrwed from Python email package.
+# This table was initially borrowed from Python email package.
 
 my %CHARSETS = (# input		    header enc body enc output conv
 		'ISO-8859-1' =>		['Q',	'Q',	undef],
@@ -147,6 +147,7 @@ my %CHARSETS = (# input		    header enc body enc output conv
 		'ISO-8859-13' =>	['Q',	'Q',	undef],
 		'ISO-8859-14' =>	['Q',	'Q',	undef],
 		'ISO-8859-15' =>	['Q',	'Q',	undef],
+		'ISO-8859-16' =>	['Q',	'Q',	undef],
 		'WINDOWS-1252' =>	['Q',	'Q',	undef],
 		'VISCII' =>		['Q',	'Q',	undef],
 		'US-ASCII' =>		[undef,	undef,	undef],
@@ -195,8 +196,10 @@ my %ENCODERS = (
 				     ['cp1256'],        # Encode::Byte
 				     # ['cp1006'],      # ditto, for Farsi
 				    ],
+		    'ISO-8859-6-I'=>[['cp1256'], ],     # ditto
 		    'ISO-8859-7' => [['cp1253'], ],     # Encode::Byte
 		    'ISO-8859-8' => [['cp1255'], ],     # Encode::Byte
+		    'ISO-8859-8-I'=>[['cp1255'], ],     # ditto
 		    'ISO-8859-9' => [['cp1254'], ],     # Encode::Byte
 		    'ISO-8859-13'=> [['cp1257'], ],     # Encode::Byte
 		    'GB2312'     => [['cp936'], ],      # Encode::CN
@@ -226,6 +229,10 @@ my %ENCODERS = (
 		    'UTF-8'      => [['utf8'], ],       # Special name on Perl
 		},
 		'STANDARD' => {
+		    'ISO-8859-6-E'  => [['iso-8859-6'],],# Encode::Byte
+		    'ISO-8859-6-I'  => [['iso-8859-6'],],# ditto
+		    'ISO-8859-8-E'  => [['iso-8859-8'],],# Encode::Byte
+		    'ISO-8859-8-I'  => [['iso-8859-8'],],# ditto
 		    'GB18030'       => [['gb18030',     'Encode::HanExtra'], ],
 		    'EUC-JISX0213'  => [['euc-jisx0213', 'Encode::JIS2K'], ],
 		    'ISO-2022-JP-3' => [['iso-2022-jp-3', 'Encode::JIS2K'], ],
@@ -405,7 +412,8 @@ sub _find_encoder($$) {
 
 Get recommended transfer-encoding of CHARSET for message body.
 
-Returned value will be one of C<"B"> (BASE64), C<"Q"> (QUOTED-PRINTABLE) or
+Returned value will be one of C<"B"> (BASE64), C<"Q"> (QUOTED-PRINTABLE),
+C<"S"> (shorter one of either) or
 C<undef> (might not be transfer-encoded; either 7BIT or 8BIT).  This may
 not be same as encoding for message header.
 
@@ -441,6 +449,8 @@ sub as_string($) {
 =item $charset->decoder
 
 Get L<"Encode::Encoding"> object to decode strings to Unicode by charset.
+If charset is not specified or not known by this module,
+undef will be returned.
 
 =cut
 
@@ -595,6 +605,12 @@ sub body_encode {
             $enc = '7BIT';
             $cset = 'US-ASCII';
         }
+    } elsif ($enc eq 'S') {
+	if (_enclen_B($encoded) < _enclen_Q($encoded, 1)) {
+	    $enc = 'B';
+	} else {
+	    $enc = 'Q';
+	}
     } elsif ($enc eq 'B') {
         $enc = 'BASE64';
     } elsif ($enc eq 'Q') {
@@ -729,9 +745,15 @@ sub _enclen_B($) {
     int((length(shift) + 2) / 3) * 4;
 }
 
-sub _enclen_Q($) {
+sub _enclen_Q($;$) {
     my $s = shift;
-    my @o = ($s =~ m{([^- !*+/0-9A-Za-z])}gos);
+    my $in_body = shift;
+    my @o;
+    if ($in_body) {
+	@o = ($s =~ m{([^-\t\r\n !*+/0-9A-Za-z])}go);
+    } else {
+	@o = ($s =~ m{([^- !*+/0-9A-Za-z])}gos);
+    }
     length($s) + scalar(@o) * 2;
 }
 
@@ -1026,7 +1048,8 @@ It may be one of C<"B">, C<"Q">, C<"S"> (shorter one of either) or
 C<undef> (might not be encoded).
 
 BODYENC is recommended transfer-encoding for message body.  It may be
-one of C<"B">, C<"Q"> or C<undef> (might not be transfer-encoded).
+one of C<"B">, C<"Q">, C<"S"> (shorter one of either) or
+C<undef> (might not be transfer-encoded).
 
 ENCCHARSET is a charset which is compatible with given CHARSET and
 is recommended to be used for MIME messages on Internet.
@@ -1134,6 +1157,49 @@ Consult $VERSION variable.
 
 Development versions of this module may be found at
 L<http://hatuka.nezumi.nu/repos/MIME-Charset/>.
+
+=head2 Incompatible Changes
+
+=over 4
+
+=item Release 1.001
+
+=over 4
+
+=item o
+
+new() method returns an object when CHARSET argument is not specified.
+
+=back
+
+=item Release 1.005
+
+=over 4
+
+=item o
+
+Restrict characters in encoded-word according to RFC 2047 section 5 (3).
+This also affects return value of encoded_header_len() method.
+
+=back
+
+=item Release 1.008
+
+=over 4
+
+=item o
+
+body_encoding() method may also returns C<"S">.
+
+=item o
+
+Return value of body_encode() method for UTF-8 may include
+C<"QUOTED-PRINTABLE"> encoding item that in earlier versions was fixed to
+C<"BASE64">.
+
+=back
+
+=back
 
 =head1 SEE ALSO
 
