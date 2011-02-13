@@ -7,7 +7,7 @@ use Carp qw(croak);
 
 use vars qw($VERSION);
 
-$VERSION = "1.003";
+$VERSION = "1.003.1";
 
 sub FB_CROAK { 0x1; }
 sub FB_PERLQQ { 0x100; }
@@ -41,7 +41,8 @@ sub resolve_alias {
 	   'vietnamese' => 1258,
 	);
 	my @Latin2iso = ( 0, 1, 2, 3, 4, 9, 10, 13, 14, 15, 16 );
-	$cset =~ s/^(\S+)[\s_]+(.*)$/$1-$2/i;
+	$cset =~ s/^(\S+)[\s_]+(.*)$/$1-$2/i
+	    unless $cset =~ /^_UNICODE_$/i;
 	$cset =~ s/^UTF-8$/utf8/i;
 	$cset =~ s/^.*\bhk(?:scs)?[-_]?big5$/big5-hkscs/i;
 	$cset =~ s/^.*\bbig5-?hk(?:scs)?$/big5-hkscs/i;

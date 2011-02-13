@@ -115,7 +115,7 @@ my @ENCODE_SUBS = qw(FB_CROAK FB_PERLQQ FB_HTMLCREF FB_XMLCREF
 		     is_utf8 resolve_alias);
 if (USE_ENCODE) {
     eval "use ".USE_ENCODE." \@ENCODE_SUBS;";
-    if ($@) { # Perl 5.7.3 + Encode 0.04
+    if ($@) { # Perl 5.7.3 + Encode 0.40
 	eval "use ".USE_ENCODE." qw(is_utf8);";
 	require MIME::Charset::_Compat;
 	for my $sub (@ENCODE_SUBS) {
