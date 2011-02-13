@@ -4,6 +4,10 @@ use Test;
 BEGIN { plan tests => 18 }
 
 use MIME::Charset qw(:trans);
+if (&MIME::Charset::USE_ENCODE && $] < 5.008) {
+    require Encode::JP;
+    require Encode::CN;
+}
 
 my ($converted, $charset, $encoding);
 my $dst = "Perl:\033\$BIBE*\@^CoE*GQJ*=PNO4o\033(B";
