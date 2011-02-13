@@ -9,7 +9,7 @@ check_nmake;
 
 # Specific dependencies
 test_requires 'Test::More' => '0';
-if ( $] >= 5.008 ) {
+if ( $] >= 5.007003 ) {
     requires 'Encode' => '1.98';
     include 'Module::AutoInstall';
     feature 'Extended mappings by Japanese codepages',

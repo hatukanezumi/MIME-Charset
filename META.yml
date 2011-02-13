@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name:         MIME-Charset
 abstract:     Charset Informations for MIME
-version:      1.008
+version:      1.008.1
 author:
   - Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>
 license:      perl
@@ -27,7 +27,7 @@ build_requires:
 provides:
     MIME::Charset:
         file:                      Charset.pm
-        version:                   1.008
+        version:                   1.008.1
 resources:
     repository: http://hatuka.nezumi.nu/repos/MIME-Charset/
 meta-spec:

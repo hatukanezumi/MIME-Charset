@@ -435,7 +435,7 @@ L<"header_encoding">、L<"body_encoding">、L<"output_charset"> を使ってほ�
 
 Unicode/マルチバイト対応フラグ。
 Unicode とマルチバイトへの対応が有効になっているときは、空でない文字列が設定されている。
-現在、このフラグは Perl 5.8.0 以降で空でなく、それより以前の Perl では空の文字列。
+現在、このフラグは Perl 5.7.3 以降で空でなく、それより以前の Perl では空の文字列。
 
 =back
 
@@ -506,7 +506,7 @@ L<http://hatuka.nezumi.nu/repos/MIME-Charset/> にある。
 
 =over 4
 
-=item o
+=item *
 
 new() メソッドは CHARSET 引数を指定しなくてもオブジェクトを返すようになった。
 
@@ -516,7 +516,7 @@ new() メソッドは CHARSET 引数を指定しなくてもオブジェクト�
 
 =over 4
 
-=item o
+=item *
 
 encoded-word に含まれる文字種を RFC 2047 の 5 (3) 節のとおりにした。
 encoded_header_len() メソッドの返値も変わる。
@@ -527,11 +527,11 @@ encoded_header_len() メソッドの返値も変わる。
 
 =over 4
 
-=item o
+=item *
 
 body_encoding() メソッドも C<"S"> を返せるようになった。
 
-=item o
+=item *
 
 body_encode() メソッドの UTF-8 に対する返値のエンコーディング要素は、
 これまでのリリースでは C<"BASE64"> に固定だったが、C<"QUOTED-PRINTABLE"> になることがある。

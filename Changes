@@ -1,3 +1,12 @@
+XXXX-XX-XX	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
+
+	* Release 1.008.1.
+	* No new features.  Just for typos and eyesore messages.
+	* Imp: Supports Unicode/multibyte on Perl 5.7.3.
+	* Perl 5.7.3 & 5.8.3:
+	  avoid ``Useless use of a constant in void context'' warnings.
+	* Doc: small fixes.
+
 2009-10-19	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.008.
