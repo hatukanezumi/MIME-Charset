@@ -27,6 +27,8 @@ sub resolve_alias {
     my $cset = lc(shift);
     if ($cset eq "8bit" or $cset !~ /\S/) {
 	return undef;
+    } elsif ($cset eq '_unicode_') {
+	return $cset;
     } else {
 	# Taken from Encode-2.24.
 	my %Winlatin2cp = (
@@ -41,8 +43,7 @@ sub resolve_alias {
 	   'vietnamese' => 1258,
 	);
 	my @Latin2iso = ( 0, 1, 2, 3, 4, 9, 10, 13, 14, 15, 16 );
-	$cset =~ s/^(\S+)[\s_]+(.*)$/$1-$2/i
-	    unless $cset =~ /^_UNICODE_$/i;
+	$cset =~ s/^(\S+)[\s_]+(.*)$/$1-$2/i;
 	$cset =~ s/^UTF-8$/utf8/i;
 	$cset =~ s/^.*\bhk(?:scs)?[-_]?big5$/big5-hkscs/i;
 	$cset =~ s/^.*\bbig5-?hk(?:scs)?$/big5-hkscs/i;

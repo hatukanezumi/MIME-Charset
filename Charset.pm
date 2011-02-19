@@ -353,6 +353,7 @@ sub new {
     my $class = shift;
     my $charset = shift;
     return bless {}, $class unless $charset;
+    return bless {}, $class if 75 < length $charset; # w/a for CPAN RT #65796.
     my %params = @_;
     my $mapping = uc($params{'Mapping'} || $Config->{Mapping});
 
