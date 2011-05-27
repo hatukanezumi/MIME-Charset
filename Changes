@@ -1,3 +1,9 @@
+2011-05-28	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
+
+	* Release 1.008.2.
+	* Bug Fix: Body transfer-encoding profile "S" did not work properly,
+	  and profile for UTF-8 was NOT really updated.
+
 2011-02-19	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.008.1.

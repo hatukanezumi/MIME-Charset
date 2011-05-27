@@ -132,7 +132,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.008.1';
+$VERSION = '1.008.2';
 
 ######## Private Attributes ########
 
@@ -166,7 +166,7 @@ my %CHARSETS = (# input		    header enc body enc output conv
 		'SHIFT_JIS' =>		['B',	undef,	'ISO-2022-JP'],
 		'ISO-2022-JP' =>	['B',	undef,	undef],
 		'KOI8-R' =>		['B',	'B',	undef],
-		'UTF-8' =>		['S',	'B',	undef],
+		'UTF-8' =>		['S',	'S',	undef],
 		'HZ-GB-2312' =>		['B',	undef,	undef],
 		'UTF-7' =>		['Q',	undef,	undef],
 		'GSM03.38' =>		[undef,	undef,	undef], # not for MIME
@@ -617,9 +617,9 @@ sub body_encode {
         }
     } elsif ($enc eq 'S') {
 	if (_enclen_B($encoded) < _enclen_Q($encoded, 1)) {
-	    $enc = 'B';
+	    $enc = 'BASE64';
 	} else {
-	    $enc = 'Q';
+	    $enc = 'QUOTED-PRINTABLE';
 	}
     } elsif ($enc eq 'B') {
         $enc = 'BASE64';
@@ -1193,7 +1193,7 @@ This also affects return value of encoded_header_len() method.
 
 =back
 
-=item Release 1.008
+=item Release 1.008.2
 
 =over 4
 
@@ -1221,7 +1221,7 @@ Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006-2009 Hatuka*nezumi - IKEDA Soji.
+Copyright (C) 2006-2011 Hatuka*nezumi - IKEDA Soji.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
