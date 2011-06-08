@@ -1,7 +1,16 @@
 use strict;
-use Test;
+use Test::More;
 
-BEGIN { plan tests => 26 }
+BEGIN {
+    if ($] < 5.007003) {
+	plan tests => 27;
+    } else {
+	if ($] < 5.008) { # Perl 5.7.3 + Encode 0.04
+	    require Encode::CN;
+	}
+	plan tests => 29;
+    }
+}
 
 my @names = qw(
 	    US-ASCII
@@ -12,11 +21,18 @@ my @names = qw(
 	    GB2312 BIG5 KOI8-R
 	    UTF-8
 	    HZ-GB-2312
+	    TIS-620
 	   );
 
 use MIME::Charset qw(:info);
 
 foreach my $name (@names) {
-    my $aliased = MIME::Charset->new($name)->as_string;
-    ok($aliased, $name, $aliased);
+    my $obj = MIME::Charset->new($name);
+    is($obj->as_string, $name, $name);
+    if (&MIME::Charset::USE_ENCODE and
+	($name eq 'HZ-GB-2312' or $name eq 'TIS-620')) {
+	is($obj->decoder ? 'defined' : undef, 'defined', "$name available");
+	diag("$name is decoded by '".$obj->decoder->name."' encoding")
+	    if $obj->decoder;
+    }
 }

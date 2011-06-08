@@ -132,7 +132,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.008.2';
+$VERSION = '1.009';
 
 ######## Private Attributes ########
 
@@ -162,13 +162,14 @@ my %CHARSETS = (# input		    header enc body enc output conv
 		'US-ASCII' =>		[undef,	undef,	undef],
 		'BIG5' =>		['B',	'B',	undef],
 		'GB2312' =>		['B',	'B',	undef],
+		'HZ-GB-2312' =>		['B',	undef,	undef],
 		'EUC-JP' =>		['B',	undef,	'ISO-2022-JP'],
 		'SHIFT_JIS' =>		['B',	undef,	'ISO-2022-JP'],
 		'ISO-2022-JP' =>	['B',	undef,	undef],
 		'KOI8-R' =>		['B',	'B',	undef],
-		'UTF-8' =>		['S',	'S',	undef],
-		'HZ-GB-2312' =>		['B',	undef,	undef],
+		'TIS-620' =>		['B',	'B',	undef], # cf. Mew
 		'UTF-7' =>		['Q',	undef,	undef],
+		'UTF-8' =>		['S',	'S',	undef],
 		'GSM03.38' =>		[undef,	undef,	undef], # not for MIME
 		# We're making this one up to represent raw unencoded 8bit
 		'8BIT' =>		[undef,	'B',	'ISO-8859-1'],
@@ -179,19 +180,28 @@ my %CHARSETS = (# input		    header enc body enc output conv
 my %CHARSET_ALIASES = (# unpreferred		preferred
 		       "ASCII" =>		"US-ASCII",
 		       "BIG5-ETEN" =>		"BIG5",
+		       "CP1250" =>		"WINDOWS-1250",
 		       "CP1251" =>		"WINDOWS-1251",
 		       "CP1252" =>		"WINDOWS-1252",
+		       "CP1253" =>		"WINDOWS-1253",
+		       "CP1254" =>		"WINDOWS-1254",
+		       "CP1255" =>		"WINDOWS-1255",
+		       "CP1256" =>		"WINDOWS-1256",
+		       "CP1257" =>		"WINDOWS-1257",
+		       "CP1258" =>		"WINDOWS-1258",
+		       "CP874" =>		"WINDOWS-874",
 		       "CP936" =>		"GBK",
 		       "CP949" =>		"KS_C_5601-1987",
 		       "EUC-CN" =>		"GB2312",
+		       "HZ" =>			"HZ-GB-2312", # RFC 1842
 		       "KS_C_5601" =>		"KS_C_5601-1987",
 		       "SHIFTJIS" =>		"SHIFT_JIS",
 		       "SHIFTJISX0213" =>	"SHIFT_JISX0213",
+		       "TIS620" =>		"TIS-620", # IANA MIBenum 2259
 		       "UNICODE-1-1-UTF-7" =>	"UTF-7", # RFC 1642 (obs.)
 		       "UTF8" =>		"UTF-8",
 		       "UTF-8-STRICT" =>	"UTF-8", # Perl internal use
-		       "HZ" =>			"HZ-GB-2312", # RFC 1842
-		       "GSM0338" =>		"GSM03.38",
+		       "GSM0338" =>		"GSM03.38", # not for MIME
 		       );
 
 # Some vendors encode characters beyond standardized mappings using extended
@@ -234,7 +244,7 @@ my %ENCODERS = (
 				     ['cp950'],         # Encode::TW
 				     # ['big5-1984',    'Encode::HanExtra'], 
 				    ],
-		    'TIS620'     => [['iso-8859-11'], ], # Encode::Byte; NBSP
+		    'TIS-620'    => [['cp874'], ],      # Encode::Byte
 		    'UTF-8'      => [['utf8'], ],       # Special name on Perl
 		},
 		'STANDARD' => {
@@ -248,7 +258,11 @@ my %ENCODERS = (
 		    'SHIFT_JISX0213'=> [['shiftjisx0213', 'Encode::JIS2K'], ],
 		    'EUC-TW'        => [['euc-tw',      'Encode::HanExtra'], ],
 		    'HZ-GB-2312'    => [['hz'], ],	# Encode::CN
+		    'TIS-620'       => [['tis620'], ],  # (note*)
 		    'GSM03.38'      => [['gsm0338'], ],	# Encode::GSM0338
+
+		    # (note*) ISO-8859-11 was not registered by IANA.
+		    # L<Encode> treats it as canonical name of ``tis-?620''.
 		},
 );
 
@@ -357,8 +371,18 @@ sub new {
     my %params = @_;
     my $mapping = uc($params{'Mapping'} || $Config->{Mapping});
 
-    $charset = "HZ" if $charset =~ /\bhz.?gb.?2312$/i; # workaround
-    $charset = resolve_alias($charset) || $charset;
+    if ($charset =~ /\bhz.?gb.?2312$/i) {
+	# workaround: "HZ-GB-2312" mistakenly treated as "EUC-CN" by Encode
+	# (2.12).
+	$charset = "HZ-GB-2312";
+    } elsif ($charset =~ /\btis-?620$/i) {
+	# workaround: "TIS620" treated as ISO-8859-11 by Encode.
+	# And "TIS-620" not known by some versions of Encode (cf.
+	# CPAN RT #20781).
+	$charset = "TIS-620";
+    } else {
+	$charset = resolve_alias($charset) || $charset
+    }
     $charset = $CHARSET_ALIASES{uc($charset)} || uc($charset);
     my ($henc, $benc, $outcset);
     my $spec = $CHARSETS{$charset};
@@ -386,6 +410,8 @@ sub new {
     }, $class;
 }
 
+my %encoder_cache = ();
+
 sub _find_encoder($$) {
     my $charset = uc(shift || "");
     return undef unless $charset;
@@ -393,6 +419,9 @@ sub _find_encoder($$) {
     my ($spec, $name, $module, $encoder);
 
     local($@);
+    $encoder = $encoder_cache{$charset, $mapping};
+    return $encoder if ref $encoder;
+
     foreach my $m (('EXTENDED', 'STANDARD')) {
 	next if $m eq 'EXTENDED' and $mapping ne 'EXTENDED';
 	$spec = $ENCODERS{$m}->{$charset};
@@ -404,10 +433,12 @@ sub _find_encoder($$) {
 		next if $@;
 	    }
 	    $encoder = Encode::find_encoding($name);
-	    return $encoder if ref $encoder;
+	    last if ref $encoder;
 	}
     }
-    return Encode::find_encoding($charset);
+    $encoder ||= Encode::find_encoding($charset);
+    $encoder_cache{$charset, $mapping} = $encoder if $encoder;
+    return $encoder;
 }
 
 =back
@@ -616,11 +647,7 @@ sub body_encode {
             $cset = 'US-ASCII';
         }
     } elsif ($enc eq 'S') {
-	if (_enclen_B($encoded) < _enclen_Q($encoded, 1)) {
-	    $enc = 'BASE64';
-	} else {
-	    $enc = 'QUOTED-PRINTABLE';
-	}
+	$enc = _resolve_S($encoded, 1);
     } elsif ($enc eq 'B') {
         $enc = 'BASE64';
     } elsif ($enc eq 'Q') {
@@ -707,7 +734,7 @@ sub encode($$$;) {
 	$s = $self->{Decoder}->decode($s, ($check & 0x1)? FB_CROAK(): 0);
     }
     my $enc = $self->{Encoder}->encode($s, $check);
-    Encode::_utf8_off($enc); # workaround for RT #35120
+    Encode::_utf8_off($enc) if is_utf8($enc); # workaround for RT #35120
     $enc;
 }
 
@@ -741,9 +768,8 @@ sub encoded_header_len($$$;) {
     my $enclen;
     if ($encoding eq 'Q') {
         $enclen = _enclen_Q($s);
-    } elsif ($encoding eq "S") {
-        my ($b, $q) = (_enclen_B($s), _enclen_Q($s));
-	$enclen = ($b < $q)? $b: $q;
+    } elsif ($encoding eq 'S' and _resolve_S($s) eq 'Q') {
+	$enclen = _enclen_Q($s);
     } else { # "B"
         $enclen = _enclen_B($s);
     }
@@ -765,6 +791,19 @@ sub _enclen_Q($;$) {
 	@o = ($s =~ m{([^- !*+/0-9A-Za-z])}gos);
     }
     length($s) + scalar(@o) * 2;
+}
+
+sub _resolve_S($) {
+    my $s = shift;
+    my $in_body = shift;
+    my $e;
+    if ($in_body) {
+	$e = scalar(() = $s =~ m{[^-\t\r\n !*+/0-9A-Za-z]}g);
+	return (length($s) + 8 < $e * 6) ? 'BASE64' : 'QUOTED-PRINTABLE';
+    } else {
+	$e = scalar(() = $s =~ m{[^- !*+/0-9A-Za-z]}g);
+	return (length($s) + 8 < $e * 6) ? 'B' : 'Q';
+    }
 }
 
 =item $charset->header_encode(STRING [, OPTS])
@@ -827,11 +866,7 @@ sub header_encode {
             $cset = 'US-ASCII';
         }
     } elsif ($enc eq 'S') {
-	if (_enclen_B($encoded) < _enclen_Q($encoded)) {
-	    $enc = 'B';
-	} else {
-	    $enc = 'Q';
-	}
+	$enc = _resolve_S($encoded);
     } elsif ($enc !~ /^[BQ]$/) {
         $enc = 'B';
     }
