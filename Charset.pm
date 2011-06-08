@@ -132,7 +132,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.009';
+$VERSION = '1.009.1';
 
 ######## Private Attributes ########
 
@@ -435,6 +435,7 @@ sub _find_encoder($$) {
 	    $encoder = Encode::find_encoding($name);
 	    last if ref $encoder;
 	}
+	last if ref $encoder;
     }
     $encoder ||= Encode::find_encoding($charset);
     $encoder_cache{$charset, $mapping} = $encoder if $encoder;

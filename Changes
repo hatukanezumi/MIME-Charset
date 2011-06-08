@@ -1,6 +1,6 @@
-2011-06-08	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
+2011-06-09	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
-	* Release 1.009.
+	* Release 1.009.1.
 	* Chg: Workaround for aliasing on TIS-620 that is treated as
 	  ISO-8859-11 by Encode.
 	  And added WINDOWS-874 as EXTENDED map of TIS-620.
@@ -9,6 +9,10 @@
 	  actually encoded lengths.
 	* Added informations for WINDOWS-125[03-8].
 	* Added some cases to test #4.
+
+2011-06-08	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
+
+	* Release 1.009 - withdrawn.
 
 2011-05-28	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
