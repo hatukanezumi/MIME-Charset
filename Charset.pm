@@ -132,7 +132,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.009.1';
+$VERSION = '1.009.2';
 
 ######## Private Attributes ########
 
@@ -679,6 +679,8 @@ sub decode($$$;) {
 =item detect_7bit_charset STRING
 
 Guess 7-bit charset that may encode a string STRING.
+If STRING contains any 8-bit bytes, C<undef> will be returned.
+Otherwise, Default Charset will be returned for unknown charset.
 
 =cut
 
@@ -686,6 +688,9 @@ sub detect_7bit_charset($) {
     return $DEFAULT_CHARSET unless &USE_ENCODE;
     my $s = shift;
     return $DEFAULT_CHARSET unless $s;
+
+    # Non-7bit string
+    return undef if $s =~ $NON7BITRE;
 
     # Try to detect 7-bit escape sequences.
     foreach (@ESCAPE_SEQS) {

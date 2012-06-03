@@ -154,6 +154,8 @@ L<"Encode::Encoding"> オブジェクトを返す。
 =item detect_7bit_charset STRING
 
 文字列 STRING を符号化している7 ビットキャラクタセットを推測する。
+STRING が8ビットのバイトを含むときは C<undef> を返す。
+そうでないとき、キャラクタセットが不明なら初期キャラクタセットを返す。
 
 =cut
 

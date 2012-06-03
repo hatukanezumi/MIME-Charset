@@ -1,3 +1,10 @@
+2012-06-02	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
+
+	* Release 1.009.2.
+	* Fix: detect_7bit_charset(): if charset was unknown, returns undef
+	  instead of "US-ASCII".
+	* COPYING: Updated the address of FSF.
+
 2011-06-09	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.009.1.
