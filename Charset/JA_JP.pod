@@ -151,14 +151,6 @@ L<"Encode::Encoding"> オブジェクトを返す。
 
 =cut
 
-=item detect_7bit_charset STRING
-
-文字列 STRING を符号化している7 ビットキャラクタセットを推測する。
-STRING が8ビットのバイトを含むときは C<undef> を返す。
-そうでないとき、キャラクタセットが不明なら初期キャラクタセットを返す。
-
-=cut
-
 =item $charset->dup
 
 キャラクタセットオブジェクトを複写する。
@@ -260,7 +252,15 @@ Unicode/マルチバイト対応が有効になっていないとき (L<"USE_ENC
 
 =cut
 
-=item $charset->encode(STRING, [, CHECK])
+=item detect_7bit_charset STRING
+
+文字列 STRING を符号化している7 ビットキャラクタセットを推測する。
+STRING が8ビットのバイトを含むときは C<undef> を返す。
+そうでないとき、キャラクタセットが不明なら初期キャラクタセットを返す。
+
+=cut
+
+=item $charset->encode(STRING [, CHECK])
 
 STRING (Unicode 文字列または普通の文字列) を、
 元のキャラクタセットと互換でインターネット上の
@@ -275,7 +275,7 @@ Unicode/マルチバイト対応が有効になっていないとき (L<"USE_ENC
 
 =cut
 
-=item $charset->encoded_header_len(STRING [,ENCODING])
+=item $charset->encoded_header_len(STRING [, ENCODING])
 
 =item encoded_header_len STRING, ENCODING, CHARSET
 
@@ -288,7 +288,7 @@ ENCODING は C<"B">、C<"Q">、C<"S">
 
 =cut
 
-=item $charset->heder_encode(STRING [, OPTS])
+=item $charset->header_encode(STRING [, OPTS])
 
 =item header_encode STRING, CHARSET [, OPTS]
 
@@ -467,7 +467,7 @@ I<予備キャラクタセット> を使って C<"DEFAULT"> 方式をやって�
 eval{} で致命的エラーを受け止めなければいけない。
 C<"STRICT"> でも同じ。
 
-=item C<"PERQQ">
+=item C<"PERLQQ">
 
 =item C<"HTMLCREF">
 
@@ -504,7 +504,7 @@ L<http://hatuka.nezumi.nu/repos/MIME-Charset/> にある。
 
 =over 4
 
-=item リリース 1.001
+=item 1.001
 
 =over 4
 
@@ -514,7 +514,7 @@ new() メソッドは CHARSET 引数を指定しなくてもオブジェクト�
 
 =back
 
-=item リリース 1.005
+=item 1.005
 
 =over 4
 
@@ -525,7 +525,7 @@ encoded_header_len() メソッドの返値も変わる。
 
 =back
 
-=item リリース 1.008.2
+=item 1.008.2
 
 =over 4
 

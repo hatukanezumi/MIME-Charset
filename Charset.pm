@@ -5,7 +5,7 @@ use 5.005;
 
 =head1 NAME
 
-MIME::Charset - Charset Informations for MIME
+MIME::Charset - Charset Information for MIME
 
 =head1 SYNOPSIS
 
@@ -13,7 +13,7 @@ MIME::Charset - Charset Informations for MIME
 
     $charset = MIME::Charset->new("euc-jp");
 
-Getting charset informations:
+Getting charset information:
 
     $benc = $charset->body_encoding; # e.g. "Q"
     $cset = $charset->as_string; # e.g. "US-ASCII"
@@ -78,7 +78,7 @@ Non-OO functions (may be deprecated in near future):
 
 =head1 DESCRIPTION
 
-MIME::Charset provides informations about character sets used for
+MIME::Charset provides information about character sets used for
 MIME messages on Internet.
 
 =head2 Definitions
@@ -132,7 +132,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.009.2';
+$VERSION = '1.009.3';
 
 ######## Private Attributes ########
 
@@ -444,7 +444,7 @@ sub _find_encoder($$) {
 
 =back
 
-=head2 Getting Informations of Charsets
+=head2 Getting Information of Charsets
 
 =over
 
@@ -718,7 +718,7 @@ sub _detect_7bit_charset {
     detect_7bit_charset(@_);
 }
 
-=item $charset->encode(STRING [,CHECK])
+=item $charset->encode(STRING [, CHECK])
 
 Encode STRING (Unicode or non-Unicode) using compatible charset recommended
 to be used for messages on Internet (if this module knows it).
@@ -1068,7 +1068,7 @@ Otherwise, fallback charset won't be changed.  In any cases,
 current fallback charset will be returned.
 
 B<NOTE>: It I<is> useful that C<"US-ASCII"> is specified as fallback charset,
-since result of conversion will be readable without charset informations.
+since result of conversion will be readable without charset information.
 
 =cut
 

@@ -1,3 +1,11 @@
+2012-12-30	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
+
+	* Release 1.009.3.
+	* No new features.
+	* CPAN RT #77715: Spelling mistake in documentation.
+	* Bug on CPAN site: cannot render PODs including "=item" with
+	  non-ASCII.
+
 2012-06-02	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.009.2.

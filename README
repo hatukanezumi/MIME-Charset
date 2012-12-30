@@ -10,7 +10,7 @@ under the same terms as Perl itself.
 One main module and some supporting program files are contained. For
 more details read following POD documentation:
 
-    MIME::Charset - Charset Informations for MIME
+    MIME::Charset - Charset Information for MIME
 
 For japonophones, POD in Japanese language is also included:
 
