@@ -132,7 +132,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.009.3';
+$VERSION = '1.010';
 
 ######## Private Attributes ########
 
@@ -168,6 +168,12 @@ my %CHARSETS = (# input		    header enc body enc output conv
 		'ISO-2022-JP' =>	['B',	undef,	undef],
 		'KOI8-R' =>		['B',	'B',	undef],
 		'TIS-620' =>		['B',	'B',	undef], # cf. Mew
+		'UTF-16' =>		['B',	'B',	undef],
+		'UTF-16BE' => 		['B',	'B',	undef],
+		'UTF-16LE' =>		['B',	'B',	undef],
+		'UTF-32' =>		['B',	'B',	undef],
+		'UTF-32BE' => 		['B',	'B',	undef],
+		'UTF-32LE' =>		['B',	'B',	undef],
 		'UTF-7' =>		['Q',	undef,	undef],
 		'UTF-8' =>		['S',	'S',	undef],
 		'GSM03.38' =>		[undef,	undef,	undef], # not for MIME
@@ -259,6 +265,8 @@ my %ENCODERS = (
 		    'EUC-TW'        => [['euc-tw',      'Encode::HanExtra'], ],
 		    'HZ-GB-2312'    => [['hz'], ],	# Encode::CN
 		    'TIS-620'       => [['tis620'], ],  # (note*)
+		    'UTF-16'        => [['x-utf16auto', 'MIME::Charset::UTF'],],
+		    'UTF-32'        => [['x-utf32auto', 'MIME::Charset::UTF'],],
 		    'GSM03.38'      => [['gsm0338'], ],	# Encode::GSM0338
 
 		    # (note*) ISO-8859-11 was not registered by IANA.
@@ -1262,7 +1270,7 @@ Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006-2011 Hatuka*nezumi - IKEDA Soji.
+Copyright (C) 2006-2013 Hatuka*nezumi - IKEDA Soji.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 

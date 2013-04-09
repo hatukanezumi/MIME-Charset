@@ -1,3 +1,10 @@
+2013-04-09	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
+
+	* Release 1.010.
+	* Fix: UTF-16 & UTF-32 encoders are died by the texts without BOM.
+	* Added a test #6 and some cases to test #4.
+	* Changed layout of distribution.
+
 2012-12-30	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.009.3.

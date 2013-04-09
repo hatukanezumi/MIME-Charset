@@ -3,7 +3,7 @@
 use inc::Module::Install;
 
 # Define metadata
-all_from 'Charset.pm';
+all_from 'lib/MIME/Charset.pm';
 license 'perl';
 check_nmake;
 
