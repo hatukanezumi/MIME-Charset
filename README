@@ -14,6 +14,6 @@ more details read following POD documentation:
 
 For japonophones, POD in Japanese language is also included:
 
-    MIME::Charset::JA_JP - MIME のためのキャラクタセット情報
+    POD2::JA::MIME::Charset - MIME のためのキャラクタセット情報
 
 $$

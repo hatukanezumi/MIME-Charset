@@ -15,8 +15,8 @@ inc/Module/Install/WriteAll.pm
 lib/MIME/Charset.pm
 lib/MIME/Charset/_Compat.pm
 lib/MIME/Charset/Defaults.pm.sample
-lib/MIME/Charset/JA_JP.pod
 lib/MIME/Charset/UTF.pm
+lib/POD2/JA/MIME/Charset.pod
 Makefile.PL
 MANIFEST			This list of files
 META.yml

@@ -1,3 +1,10 @@
+2013-08-25	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
+
+	* Release 1.010.1.
+	* No new features.
+	* CPAN RT #86917: Invalid META.
+	* Move Japanese documentation under POD2::JA.
+
 2013-04-09	Hatuka*nezumi - IKEDA Soji	<hatuka(at)nezumi.nu>
 
 	* Release 1.010.

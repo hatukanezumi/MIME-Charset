@@ -132,7 +132,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.010';
+$VERSION = '1.010.1';
 
 ######## Private Attributes ########
 
