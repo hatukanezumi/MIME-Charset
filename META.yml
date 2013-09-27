@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name:         MIME-Charset
 abstract:     Charset Information for MIME
-version:      1.010.1
+version:      1.011.0
 author:
   - Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>
 license:      perl
@@ -15,9 +15,9 @@ optional_features:
     requires:
         Encode::EUCJPASCII:        0.02
   jis2000:
-    description: Additional mappings for JIS X 0213:2000
+    description: Additional mappings for JIS X 0213
     requires:
-        Encode::JIS2K:             0.02
+        Encode::JISX0213:          0.03
   zh_extra:
     description: Additional mappings for Chinese standards
     requires:
@@ -27,7 +27,7 @@ build_requires:
 provides:
     MIME::Charset:
         file:                      lib/MIME/Charset.pm
-        version:                   1.010.1
+        version:                   1.011.0
 resources:
     repository: http://hatuka.nezumi.nu/repos/MIME-Charset/
 meta-spec:

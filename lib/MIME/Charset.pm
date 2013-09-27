@@ -132,7 +132,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.010.1';
+$VERSION = '1.011.0';
 
 ######## Private Attributes ########
 
@@ -166,6 +166,14 @@ my %CHARSETS = (# input		    header enc body enc output conv
 		'EUC-JP' =>		['B',	undef,	'ISO-2022-JP'],
 		'SHIFT_JIS' =>		['B',	undef,	'ISO-2022-JP'],
 		'ISO-2022-JP' =>	['B',	undef,	undef],
+		'ISO-2022-JP-1' =>	['B',	undef,	undef],
+		'ISO-2022-JP-2' =>	['B',	undef,	undef],
+		'EUC-JISX0213' =>	['B',	undef,	'ISO-2022-JP-3'],
+		'SHIFT_JISX0213' =>	['B',	undef,	'ISO-2022-JP-3'],
+		'ISO-2022-JP-3' =>	['B',	undef,	undef],
+		'EUC-JIS-2004' =>	['B',	undef,	'ISO-2022-JP-2004'],
+		'SHIFT_JIS-2004' =>	['B',	undef,	'ISO-2022-JP-2004'],
+		'ISO-2022-JP-2004' =>	['B',	undef,	undef],
 		'KOI8-R' =>		['B',	'B',	undef],
 		'TIS-620' =>		['B',	'B',	undef], # cf. Mew
 		'UTF-16' =>		['B',	'B',	undef],
@@ -243,6 +251,9 @@ my %ENCODERS = (
 		    'SHIFT_JIS'  => [
 				     ['cp932'],		# Encode::JP
 				    ],
+		    'EUC-JISX0213'  => [['euc-jis-2004', 'Encode::JISX0213'], ],
+		    'ISO-2022-JP-3' => [['iso-2022-jp-2004', 'Encode::JISX0213'], ],
+		    'SHIFT_JISX0213'=> [['shift_jis-2004', 'Encode::JISX0213'], ],
 		    'EUC-KR'     => [['cp949'], ],      # Encode::KR
 		    'BIG5'       => [
 				     # ['big5plus',     'Encode::HanExtra'],
@@ -259,9 +270,12 @@ my %ENCODERS = (
 		    'ISO-8859-8-E'  => [['iso-8859-8'],],# Encode::Byte
 		    'ISO-8859-8-I'  => [['iso-8859-8'],],# ditto
 		    'GB18030'       => [['gb18030',     'Encode::HanExtra'], ],
-		    'EUC-JISX0213'  => [['euc-jisx0213', 'Encode::JIS2K'], ],
-		    'ISO-2022-JP-3' => [['iso-2022-jp-3', 'Encode::JIS2K'], ],
-		    'SHIFT_JISX0213'=> [['shiftjisx0213', 'Encode::JIS2K'], ],
+		    'ISO-2022-JP-2' => [['iso-2022-jp-2','Encode::ISO2022JP2'], ],
+		    'EUC-JISX0213'  => [['euc-jisx0213', 'Encode::JISX0213'], ],
+		    'ISO-2022-JP-3' => [['iso-2022-jp-3', 'Encode::JISX0213'], ],
+		    'EUC-JIS-2004'  => [['euc-jis-2004', 'Encode::JISX0213'], ],
+		    'ISO-2022-JP-2004' => [['iso-2022-jp-2004', 'Encode::JISX0213'], ],
+		    'SHIFT_JIS-2004'=> [['shift_jis-2004', 'Encode::JISX0213'], ],
 		    'EUC-TW'        => [['euc-tw',      'Encode::HanExtra'], ],
 		    'HZ-GB-2312'    => [['hz'], ],	# Encode::CN
 		    'TIS-620'       => [['tis620'], ],  # (note*)
@@ -285,6 +299,12 @@ my @ESCAPE_SEQS = (
 		   ["\033(I",	"ISO-2022-JP"],	# ditto (nonstandard)
 		   ["\033\$(D",	"ISO-2022-JP"],	# RFC 2237 (note*)
 		   # Following sequences are less commonly used.
+		   ["\033.A",   "ISO-2022-JP-2"], # RFC 1554
+		   ["\033.F",   "ISO-2022-JP-2"], # ditto
+		   ["\033\$(C", "ISO-2022-JP-2"], # ditto
+		   ["\033\$(O",	"ISO-2022-JP-3"], # JIS X 0213:2000
+		   ["\033\$(P",	"ISO-2022-JP-2004"], # JIS X 0213:2000/2004
+		   ["\033\$(Q",	"ISO-2022-JP-2004"], # JIS X 0213:2004
 		   ["\033\$)C",	"ISO-2022-KR"],	# RFC 1557
 		   ["\033\$)A",	"ISO-2022-CN"], # RFC 1922
 		   ["\033\$A",	"ISO-2022-CN"], # ditto (nonstandard)

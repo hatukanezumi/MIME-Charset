@@ -15,9 +15,9 @@ if ( $] >= 5.007003 ) {
     feature 'Extended mappings by Japanese codepages',
       -default          => 0,
       'Encode::EUCJPASCII' => '0.02';
-    feature 'Additional mappings for JIS X 0213:2000',
+    feature 'Additional mappings for JIS X 0213',
       -default        => 0,
-      'Encode::JIS2K' => '0.02';
+      'Encode::JISX0213' => '0.03';
     feature 'Additional mappings for Chinese standards',
       -default           => 0,
       'Encode::HanExtra' => '0.20';
