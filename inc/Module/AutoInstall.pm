@@ -1,3 +1,4 @@
+#line 1
 package Module::AutoInstall;
 
 use strict;
@@ -17,7 +18,9 @@ my %FeatureMap = (
 
 # various lexical flags
 my ( @Missing, @Existing,  %DisabledTests, $UnderCPAN,     $HasCPANPLUS );
-my ( $Config,  $CheckOnly, $SkipInstall,   $AcceptDefault, $TestOnly );
+my (
+    $Config, $CheckOnly, $SkipInstall, $AcceptDefault, $TestOnly, $AllDeps
+);
 my ( $PostambleActions, $PostambleUsed );
 
 # See if it's a testing or non-interactive session
@@ -72,6 +75,9 @@ sub _init {
         elsif ( $arg =~ /^--test(?:only)?$/ ) {
             $TestOnly = 1;
         }
+        elsif ( $arg =~ /^--all(?:deps)?$/ ) {
+            $AllDeps = 1;
+        }
     }
 }
 
@@ -113,6 +119,13 @@ sub import {
               grep { /^[^\-]/ or /^-core$/i } keys %{ +{@args} }
         )[0]
     );
+
+    # We want to know if we're under CPAN early to avoid prompting, but
+    # if we aren't going to try and install anything anyway then skip the
+    # check entirely since we don't want to have to load (and configure)
+    # an old CPAN just for a cosmetic message
+
+    $UnderCPAN = _check_lock(1) unless $SkipInstall;
 
     while ( my ( $feature, $modules ) = splice( @args, 0, 2 ) ) {
         my ( @required, @tests, @skiptests );
@@ -162,15 +175,24 @@ sub import {
             }
 
             # XXX: check for conflicts and uninstalls(!) them.
-            if (
-                defined( my $cur = _version_check( _load($mod), $arg ||= 0 ) ) )
+            my $cur = _load($mod);
+            if (_version_cmp ($cur, $arg) >= 0)
             {
                 print "loaded. ($cur" . ( $arg ? " >= $arg" : '' ) . ")\n";
                 push @Existing, $mod => $arg;
                 $DisabledTests{$_} = 1 for map { glob($_) } @skiptests;
             }
             else {
-                print "missing." . ( $arg ? " (would need $arg)" : '' ) . "\n";
+                if (not defined $cur)   # indeed missing
+                {
+                    print "missing." . ( $arg ? " (would need $arg)" : '' ) . "\n";
+                }
+                else
+                {
+                    # no need to check $arg as _version_cmp ($cur, undef) would satisfy >= above
+                    print "too old. ($cur < $arg)\n";
+                }
+
                 push @required, $mod => $arg;
             }
         }
@@ -183,6 +205,8 @@ sub import {
             !$SkipInstall
             and (
                 $CheckOnly
+                or ($mandatory and $UnderCPAN)
+                or $AllDeps
                 or _prompt(
                     qq{==> Auto-install the }
                       . ( @required / 2 )
@@ -213,8 +237,6 @@ sub import {
         }
     }
 
-    $UnderCPAN = _check_lock();    # check for $UnderCPAN
-
     if ( @Missing and not( $CheckOnly or $UnderCPAN ) ) {
         require Config;
         print
@@ -231,23 +253,42 @@ sub import {
     # import to main::
     no strict 'refs';
     *{'main::WriteMakefile'} = \&Write if caller(0) eq 'main';
+
+    return (@Existing, @Missing);
+}
+
+sub _running_under {
+    my $thing = shift;
+    print <<"END_MESSAGE";
+*** Since we're running under ${thing}, I'll just let it take care
+    of the dependency's installation later.
+END_MESSAGE
+    return 1;
 }
 
 # Check to see if we are currently running under CPAN.pm and/or CPANPLUS;
 # if we are, then we simply let it taking care of our dependencies
 sub _check_lock {
-    return unless @Missing;
+    return unless @Missing or @_;
+
+    my $cpan_env = $ENV{PERL5_CPAN_IS_RUNNING};
 
     if ($ENV{PERL5_CPANPLUS_IS_RUNNING}) {
-        print <<'END_MESSAGE';
-
-*** Since we're running under CPANPLUS, I'll just let it take care
-    of the dependency's installation later.
-END_MESSAGE
-        return 1;
+        return _running_under($cpan_env ? 'CPAN' : 'CPANPLUS');
     }
 
-    _load_cpan();
+    require CPAN;
+
+    if ($CPAN::VERSION > '1.89') {
+        if ($cpan_env) {
+            return _running_under('CPAN');
+        }
+        return; # CPAN.pm new enough, don't need to check further
+    }
+
+    # last ditch attempt, this -will- configure CPAN, very sorry
+
+    _load_cpan(1); # force initialize even though it's already loaded
 
     # Find the CPAN lock-file
     my $lock = MM->catfile( $CPAN::Config->{cpan_home}, ".lock" );
@@ -283,7 +324,7 @@ sub install {
     while ( my ( $pkg, $ver ) = splice( @_, 0, 2 ) ) {
 
         # grep out those already installed
-        if ( defined( _version_check( _load($pkg), $ver ) ) ) {
+        if ( _version_cmp( _load($pkg), $ver ) >= 0 ) {
             push @installed, $pkg;
         }
         else {
@@ -312,7 +353,7 @@ sub install {
         @modules = @newmod;
     }
 
-    if ( _has_cpanplus() ) {
+    if ( _has_cpanplus() and not $ENV{PERL_AUTOINSTALL_PREFER_CPAN} ) {
         _install_cpanplus( \@modules, \@config );
     } else {
         _install_cpan( \@modules, \@config );
@@ -322,7 +363,7 @@ sub install {
 
     # see if we have successfully installed them
     while ( my ( $pkg, $ver ) = splice( @modules, 0, 2 ) ) {
-        if ( defined( _version_check( _load($pkg), $ver ) ) ) {
+        if ( _version_cmp( _load($pkg), $ver ) >= 0 ) {
             push @installed, $pkg;
         }
         elsif ( $args{do_once} and open( FAILED, '>> .#autoinstall.failed' ) ) {
@@ -377,7 +418,7 @@ sub _install_cpanplus {
         my $success;
         my $obj = $modtree->{$pkg};
 
-        if ( $obj and defined( _version_check( $obj->{version}, $ver ) ) ) {
+        if ( $obj and _version_cmp( $obj->{version}, $ver ) >= 0 ) {
             my $pathname = $pkg;
             $pathname =~ s/::/\\W/;
 
@@ -470,7 +511,7 @@ sub _install_cpan {
         my $obj     = CPAN::Shell->expand( Module => $pkg );
         my $success = 0;
 
-        if ( $obj and defined( _version_check( $obj->cpan_version, $ver ) ) ) {
+        if ( $obj and _version_cmp( $obj->cpan_version, $ver ) >= 0 ) {
             my $pathname = $pkg;
             $pathname =~ s/::/\\W/;
 
@@ -534,7 +575,7 @@ sub _update_to {
     my $ver   = shift;
 
     return
-      if defined( _version_check( _load($class), $ver ) );  # no need to upgrade
+      if _version_cmp( _load($class), $ver ) >= 0;  # no need to upgrade
 
     if (
         _prompt( "==> A newer version of $class ($ver) is required. Install?",
@@ -631,9 +672,22 @@ sub _load {
 
 # Load CPAN.pm and it's configuration
 sub _load_cpan {
-    return if $CPAN::VERSION;
+    return if $CPAN::VERSION and $CPAN::Config and not @_;
     require CPAN;
-    if ( $CPAN::HandleConfig::VERSION ) {
+
+    # CPAN-1.82+ adds CPAN::Config::AUTOLOAD to redirect to
+    #    CPAN::HandleConfig->load. CPAN reports that the redirection
+    #    is deprecated in a warning printed at the user.
+
+    # CPAN-1.81 expects CPAN::HandleConfig->load, does not have
+    #   $CPAN::HandleConfig::VERSION but cannot handle
+    #   CPAN::Config->load
+
+    # Which "versions expect CPAN::Config->load?
+
+    if ( $CPAN::HandleConfig::VERSION
+        || CPAN::HandleConfig->can('load')
+    ) {
         # Newer versions of CPAN have a HandleConfig module
         CPAN::HandleConfig->load;
     } else {
@@ -643,9 +697,11 @@ sub _load_cpan {
 }
 
 # compare two versions, either use Sort::Versions or plain comparison
-sub _version_check {
+# return values same as <=>
+sub _version_cmp {
     my ( $cur, $min ) = @_;
-    return unless defined $cur;
+    return -1 unless defined $cur;  # if 0 keep comparing
+    return 1 unless $min;
 
     $cur =~ s/\s+$//;
 
@@ -656,16 +712,13 @@ sub _version_check {
             ) {
 
             # use version.pm if it is installed.
-            return (
-                ( version->new($cur) >= version->new($min) ) ? $cur : undef );
+            return version->new($cur) <=> version->new($min);
         }
         elsif ( $Sort::Versions::VERSION or defined( _load('Sort::Versions') ) )
         {
 
             # use Sort::Versions as the sorting algorithm for a.b.c versions
-            return ( ( Sort::Versions::versioncmp( $cur, $min ) != -1 )
-                ? $cur
-                : undef );
+            return Sort::Versions::versioncmp( $cur, $min );
         }
 
         warn "Cannot reliably compare non-decimal formatted versions.\n"
@@ -674,7 +727,7 @@ sub _version_check {
 
     # plain comparison
     local $^W = 0;    # shuts off 'not numeric' bugs
-    return ( $cur >= $min ? $cur : undef );
+    return $cur <=> $min;
 }
 
 # nothing; this usage is deprecated.
@@ -705,7 +758,7 @@ sub _make_args {
       if $Config;
 
     $PostambleActions = (
-        $missing
+        ($missing and not $UnderCPAN)
         ? "\$(PERL) $0 --config=$config --installdeps=$missing"
         : "\$(NOECHO) \$(NOOP)"
     );
@@ -745,7 +798,7 @@ sub Write {
 sub postamble {
     $PostambleUsed = 1;
 
-    return << ".";
+    return <<"END_MAKE";
 
 config :: installdeps
 \t\$(NOECHO) \$(NOOP)
@@ -756,7 +809,7 @@ checkdeps ::
 installdeps ::
 \t$PostambleActions
 
-.
+END_MAKE
 
 }
 
@@ -764,240 +817,4 @@ installdeps ::
 
 __END__
 
-=pod
-
-=head1 NAME
-
-Module::AutoInstall - Automatic install of dependencies via CPAN
-
-=head1 SYNOPSIS
-
-In F<Makefile.PL>, with L<Module::Install> available on the author's system:
-
-    use inc::Module::Install;
-    
-    name        'Joe-Hacker';
-    abstract    'Perl Interface to Joe Hacker';
-    author      'Joe Hacker <joe@hacker.org>';
-    include     'Module::AutoInstall';
-    
-    requires    'Module0';          # mandatory modules
-    
-    feature     'Feature1',
-        -default    => 0,
-        'Module2'   => '0.1';
-    
-    feature     'Feature2',
-        -default    => 0,
-        'Module3'   => '1.0';
-    
-    auto_install(
-        make_args   => '--hello',   # option(s) for CPAN::Config
-        force       => 1,           # pseudo-option to force install
-        do_once     => 1,           # skip previously failed modules
-    );
-    
-    WriteAll;
-
-Invoking the resulting F<Makefile.PL>:
-
-    % perl Makefile.PL                  # interactive behaviour
-    % perl Makefile.PL --defaultdeps    # accept default value on prompts
-    % perl Makefile.PL --checkdeps      # check only, no Makefile produced
-    % perl Makefile.PL --skipdeps       # ignores all dependencies
-    % perl Makefile.PL --testonly       # don't write installation targets
-
-Note that the trailing 'deps' of arguments may be omitted, too.
-
-Using C<--defaultdeps> will make F<Makefile.PL> behave similarly to a regular
-Makefile.PL file with C<PREREQ_PM> dependencies.
-
-One can use environment variables (see "ENVIRONMENT") below to set a default
-behavior instead of specifying it in the command line for every invocation
-of F<Makefile.PL>.
-
-Using F<make> (or F<nmake>):
-
-    % make [all|test|install]           # install dependencies first
-    % make checkdeps                    # same as the --checkdeps above
-    % make installdeps                  # install dependencies only
-
-=head1 DESCRIPTION
-
-B<Module::AutoInstall> lets module writers to specify a more
-sophisticated form of dependency information than the C<PREREQ_PM>
-option offered by B<ExtUtils::MakeMaker>.
-
-This module works best with the B<Module::Install> framework,
-a drop-in replacement for MakeMaker.  However, this module also
-supports F<Makefile.PL> files based on MakeMaker; see L</EXAMPLES>
-for instructions.
-
-=head2 Prerequisites and Features
-
-Prerequisites are grouped into B<features>, and the user could choose
-yes/no on each one's dependencies; the module writer may also supply a
-boolean value via C<-default> to specify the default choice.
-
-The B<Core Features> marked by the name C<-core> will double-check with
-the user, if the user chooses not to install the mandatory modules.
-This differs from the pre-0.26 'silent install' behaviour.
-
-Starting from version 0.27, if C<-core> is set to the string C<all>
-(case-insensitive), every feature will be considered mandatory.
-
-The dependencies are expressed as pairs of C<Module> => C<version>
-inside an array reference.  If the order does not matter, and there
-are no C<-default>, C<-tests> or C<-skiptests> directives for that
-feature, you may also use a hash reference.
-
-=head2 The Installation Process
-
-Once B<Module::AutoInstall> has determined which module(s) are needed,
-it checks whether it's running under the B<CPAN> shell and should
-therefore let B<CPAN> handle the dependency.
-
-Finally, the C<WriteMakefile()> is overridden to perform some additional
-checks, as well as skips tests associated with disabled features by the
-C<-tests> option.
-
-The actual installation happens at the end of the C<make config> target;
-both C<make test> and C<make install> will trigger the installation of
-required modules.
-
-If it's not running under B<CPAN>, the installer will probe for an
-active connection by trying to resolve the domain C<cpan.org>, and check
-for the user's permission to use B<CPAN>.  If all went well, a separate
-    B<CPAN> instance is created to install the required modules.
-
-If you have the B<CPANPLUS> package installed in your system, it is
-preferred by default over B<CPAN>; it also accepts some extra options
-(e.g. C<-target =E<gt> 'skiptest', -skiptest =E<gt> 1> to skip testing).
-
-All modules scheduled to be installed will be deleted from C<%INC>
-first, so B<ExtUtils::MakeMaker> will check the newly installed modules.
-
-Additionally, you could use the C<make installdeps> target to install
-the modules, and the C<make checkdeps> target to check dependencies
-without actually installing them; the C<perl Makefile.PL --checkdeps>
-command has an equivalent effect.
-
-If the F<Makefile.PL> itself needs to use an independent module (e.g.
-B<Acme::KillarApp>, v1.21 or greater), then use something like below:
-
-    BEGIN {
-        require Module::AutoInstall;
-        # the first argument is an arrayref of the -config flags
-        Module::AutoInstall->install([], 'Acme::KillerApp' => 1.21);
-    }
-    use Acme::KillerApp 1.21;
-
-    Module::AutoInstall->import(
-        # ... arguments as usual ...
-    );
-
-Note the version test in the use clause; if you are so close to the
-cutting edge that B<Acme::KillerApp> 1.20 is the latest version on CPAN,
-this will prevent your module from going awry.
-
-=head2 User-Defined Hooks
-
-User-defined I<pre-installation> and I<post-installation> hooks are
-available via C<MY::preinstall> and C<MY::postinstall> subroutines,
-as shown below:
-
-    # pre-install handler; takes $module_name and $version
-    sub MY::preinstall  { return 1; } # return false to skip install
-
-    # post-install handler; takes $module_name, $version, $success
-    sub MY::postinstall { return; }   # the return value doesn't matter
-
-Note that since B<Module::AutoInstall> performs installation at the
-time of C<use> (i.e. before perl parses the remainder of
-F<Makefile.PL>), you have to declare those two handlers I<before> the
-C<use> statement for them to take effect.
-
-If the user did not choose to install a module or it already exists on
-the system, neither of the handlers is invoked.  Both handlers are invoked
-exactly once for each module when installation is attempted.
-
-C<MY::preinstall> takes two arguments, C<$module_name> and C<$version>;
-if it returns a false value, installation for that module will be
-skipped, and C<MY::postinstall> won't be called at all.
-
-C<MY::postinstall> takes three arguments, C<$module_name>, C<$version>
-and C<$success>.  The last one denotes whether the installation
-succeeded or not: C<1> means installation completed successfully, C<0>
-means failure during install, and C<undef> means that the installation
-was not attempted at all, possibly due to connection problems, or that
-module does not exist on CPAN at all.
-
-=head2 Customized C<MY::postamble>
-
-Starting from version 0.43, B<Module::AutoInstall> supports modules
-that require a C<MY::postamble> subroutine in their F<Makefile.PL>.
-The user-defined C<MY::postamble>, if present, is responsible for
-calling C<Module::AutoInstall::postamble> and include the output in
-its return value.
-
-For example, the B<DBD::*> (database driver) modules for the Perl DBI
-are required to include the postamble generated by the function
-C<dbd_postamble>, so their F<Makefile.PL> may contain lines like this:
-
-    sub MY::postamble {
-        return &Module::AutoInstall::postamble . &dbd_postamble;
-    }
-
-Note that the B<Module::AutoInstall> module does not export the
-C<postamble> function, so the name should always be fully qualified.
-
-=head1 CAVEATS
-
-B<Module::AutoInstall> will add C<UNINST=1> to your B<make install>
-flags if your effective uid is 0 (root), unless you explicitly disable
-it by setting B<CPAN>'s C<make_install_arg> configuration option (or the
-C<makeflags> option of B<CPANPLUS>) to include C<UNINST=0>.  This I<may>
-cause dependency problems if you are using a fine-tuned directory
-structure for your site.  Please consult L<CPAN/FAQ> for an explanation
-in detail.
-
-If either B<version> or B<Sort::Versions> is available, they will be
-used to compare the required version with the existing module's version
-and the CPAN module's.  Otherwise it silently falls back to use I<cmp>.
-This may cause inconsistent behaviours in pathetic situations.
-
-=head1 ENVIRONMENT
-
-B<Module::AutoInstall> uses a single environment variable,
-C<PERL_AUTOINSTALL>.  It is taken as the command line argument
-passed to F<Makefile.PL>; you could set it to either C<--defaultdeps> or
-C<--skipdeps> to avoid interactive behaviour.
-
-It also read from the C<PERL_EXTUTILS_AUTOINSTALL> environment variable if
-C<PERL_AUTOINSTALL> is not defined.
-
-=head1 SEE ALSO
-
-L<Module::Install>
-
-L<perlmodlib>, L<ExtUtils::MakeMaker>, L<Sort::Versions>, L<CPAN>,
-L<CPANPLUS>
-
-=head1 AUTHORS
-
-Audrey Tang E<lt>autrijus@autrijus.orgE<gt>
-
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>
-
-=head1 COPYRIGHT
-
-Copyright 2001, 2002, 2003, 2004, 2005, 2006 by Audrey Tang
-
-Some parts copyright 2006 Adam Kennedy
-
-This program is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself.
-
-See L<http://www.perl.com/perl/misc/Artistic.html>
-
-=cut
+#line 1071

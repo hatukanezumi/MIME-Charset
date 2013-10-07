@@ -1,5 +1,12 @@
 Revision history for Perl module MIME::Charset.
 
+1.011.1 2013-10-07  Hatuka*nezumi - IKEDA Soji  <hatuka(at)nezumi.nu>
+
+    * Fix: "shift_jis-2004" did not depend on Encode::JISX0213 but
+      Encode::ShiftJIS2004.
+    * Chg: Added gb18030 to extended mapping of GB2312.
+    * Updated inc::Module::Install to version 1.01.
+
 1.011.0 2013-09-26  Hatuka*nezumi - IKEDA Soji  <hatuka(at)nezumi.nu>
 
     * Use Encode::JISX0213 instead of Encode::JIS2K which was not

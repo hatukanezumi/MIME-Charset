@@ -132,7 +132,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.011.0';
+$VERSION = '1.011.1';
 
 ######## Private Attributes ########
 
@@ -235,7 +235,10 @@ my %ENCODERS = (
 		    'ISO-8859-8-I'=>[['cp1255'], ],     # ditto
 		    'ISO-8859-9' => [['cp1254'], ],     # Encode::Byte
 		    'ISO-8859-13'=> [['cp1257'], ],     # Encode::Byte
-		    'GB2312'     => [['cp936'], ],      # Encode::CN
+		    'GB2312'     => [
+				     ['gb18030',	'Encode::HanExtra'],
+				     ['cp936'],		# Encode::CN
+				    ],
 		    'EUC-JP'     => [
 				     ['eucJP-ascii',	'Encode::EUCJPASCII'],
 				     # ['cp51932',	'Encode::EUCJPMS'],
@@ -253,7 +256,7 @@ my %ENCODERS = (
 				    ],
 		    'EUC-JISX0213'  => [['euc-jis-2004', 'Encode::JISX0213'], ],
 		    'ISO-2022-JP-3' => [['iso-2022-jp-2004', 'Encode::JISX0213'], ],
-		    'SHIFT_JISX0213'=> [['shift_jis-2004', 'Encode::JISX0213'], ],
+		    'SHIFT_JISX0213'=> [['shift_jis-2004', 'Encode::ShiftJIS2004'], ],
 		    'EUC-KR'     => [['cp949'], ],      # Encode::KR
 		    'BIG5'       => [
 				     # ['big5plus',     'Encode::HanExtra'],
@@ -275,7 +278,7 @@ my %ENCODERS = (
 		    'ISO-2022-JP-3' => [['iso-2022-jp-3', 'Encode::JISX0213'], ],
 		    'EUC-JIS-2004'  => [['euc-jis-2004', 'Encode::JISX0213'], ],
 		    'ISO-2022-JP-2004' => [['iso-2022-jp-2004', 'Encode::JISX0213'], ],
-		    'SHIFT_JIS-2004'=> [['shift_jis-2004', 'Encode::JISX0213'], ],
+		    'SHIFT_JIS-2004'=> [['shift_jis-2004', 'Encode::ShiftJIS2004'], ],
 		    'EUC-TW'        => [['euc-tw',      'Encode::HanExtra'], ],
 		    'HZ-GB-2312'    => [['hz'], ],	# Encode::CN
 		    'TIS-620'       => [['tis620'], ],  # (note*)
