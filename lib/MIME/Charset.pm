@@ -132,7 +132,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.011.1';
+$VERSION = '1.011.2';
 
 ######## Private Attributes ########
 
@@ -830,7 +830,7 @@ sub _enclen_Q($;$) {
     length($s) + scalar(@o) * 2;
 }
 
-sub _resolve_S($) {
+sub _resolve_S($;$) {
     my $s = shift;
     my $in_body = shift;
     my $e;

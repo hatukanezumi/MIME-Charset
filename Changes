@@ -1,5 +1,12 @@
 Revision history for Perl module MIME::Charset.
 
+1.011.2  2014-11-27  Hatuka*nezumi - IKEDA Soji  <hatuka(at)nezumi.nu>
+
+    * Added module CPAN to configure_require for inc::Test::AutoInstall.
+    * Added POD2::Base to recommended feature.
+    * Fix: wrong prototype for _resolve_S().
+    * Move repository to github.
+
 1.011.1 2013-10-07  Hatuka*nezumi - IKEDA Soji  <hatuka(at)nezumi.nu>
 
     * Fix: "shift_jis-2004" did not depend on Encode::JISX0213 but

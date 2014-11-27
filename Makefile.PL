@@ -8,6 +8,7 @@ license 'perl';
 check_nmake;
 
 # Specific dependencies
+configure_requires 'CPAN' => 0; # for inc::Module::AutoInstall
 test_requires 'Test::More' => '0';
 if ( $] >= 5.007003 ) {
     requires 'Encode' => '1.98';
@@ -21,6 +22,9 @@ if ( $] >= 5.007003 ) {
     feature 'Additional mappings for Chinese standards',
       -default           => 0,
       'Encode::HanExtra' => '0.20';
+    feature 'Support for POD2 - translations of Perl documentation',
+      -default           => 0,
+      'POD2::Base'       => '0.041';
 }
 
 # Write out
