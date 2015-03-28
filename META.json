@@ -84,7 +84,7 @@
    "provides" : {
       "MIME::Charset" : {
          "file" : "lib/MIME/Charset.pm",
-         "version" : "1.011.3"
+         "version" : "1.012"
       }
    },
    "release_status" : "stable",
@@ -93,5 +93,5 @@
          "url" : "https://github.com/hatukanezumi/MIME-Charset.git"
       }
    },
-   "version" : "1.011.3"
+   "version" : "1.012"
 }

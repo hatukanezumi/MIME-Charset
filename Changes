@@ -1,5 +1,9 @@
 Revision history for Perl module MIME::Charset.
 
+1.012  2015-03-28  Hatuka*nezumi - IKEDA Soji  <hatuka(at)nezumi.nu>
+
+    * CPAN RT #100839: Malformed JSON in META.json.
+
 1.011.3  2014-12-10  Hatuka*nezumi - IKEDA Soji  <hatuka(at)nezumi.nu>
 
     * Use "eval 'require ...'" to import optional encoding modules.
