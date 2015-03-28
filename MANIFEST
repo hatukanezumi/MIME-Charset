@@ -19,7 +19,7 @@ lib/MIME/Charset/UTF.pm
 lib/POD2/JA/MIME/Charset.pod
 Makefile.PL
 MANIFEST			This list of files
-META.yml
+META.json
 README
 t/01encode.t
 t/01ooencode.t

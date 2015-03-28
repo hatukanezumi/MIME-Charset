@@ -1,37 +1,97 @@
---- #YAML:1.0
-name:         MIME-Charset
-abstract:     Charset Information for MIME
-version:      1.011.2
-author:
-  - Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>
-license:      perl_5
-distribution_type: module
-requires:
-    Encode:                        1.98
-    perl:                          5.005
-optional_features:
-  ja_extended:
-    description: Extended mappings by Japanese codepages
-    requires:
-        Encode::EUCJPASCII:        0.02
-  jis2000:
-    description: Additional mappings for JIS X 0213
-    requires:
-        Encode::JISX0213:          0.03
-  zh_extra:
-    description: Additional mappings for Chinese standards
-    requires:
-        Encode::HanExtra:          0.20
-build_requires:
-    Test::More:                    0
-provides:
-    MIME::Charset:
-        file:                      lib/MIME/Charset.pm
-        version:                   1.011.2
-resources:
-    repository: https://github.com/hatukanezumi/MIME-Charset.git
-meta-spec:
-   version: 1.3
-   url: http://module-build.sourceforge.net/META-spec-v1.3.html
-generated_by: author
-
+{
+   "abstract" : "Charset Information for MIME",
+   "author" : [
+      "Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "ExtUtils::MakeMaker version 6.68, CPAN::Meta::Converter version 2.120630",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "MIME-Charset",
+   "no_index" : {
+      "directory" : [
+         "t",
+         "inc"
+      ]
+   },
+   "optional_features" : {
+      "ja_extended" : {
+         "description" : "Extended mappings by Japanese codepages",
+         "prereqs" : {
+            "runtime" : {
+               "requires" : {
+                  "Encode::EUCJPASCII" : "0.02"
+               }
+            }
+         }
+      },
+      "jis2000" : {
+         "description" : "Additional mappings for JIS X 0213",
+         "prereqs" : {
+            "runtime" : {
+               "requires" : {
+                  "Encode::JISX0213" : "0.03"
+               }
+            }
+         }
+      },
+      "zh_extra" : {
+         "description" : "Additional mappings for Chinese standards",
+         "prereqs" : {
+            "runtime" : {
+               "requires" : {
+                  "Encode::HanExtra" : "0.20"
+               }
+            }
+         }
+      },
+      "pod2" : {
+         "description" : "Support for POD2 - translations of Perl documentation",
+         "prereqs" : {
+            "runtime" : {
+               "requires" : {
+                  "POD2::Base" : "0.041"
+               }
+            }
+         }
+      }
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "CPAN" : "0",
+            "ExtUtils::MakeMaker" : "6.42",
+            "Test::More" : "0"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "0"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Encode" : "1.98",
+            "perl" : "5.005"
+         }
+      }
+   },
+   "provides" : {
+      "MIME::Charset" : {
+         "file" : "lib/MIME/Charset.pm",
+         "version" : "1.011.3"
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "repository" : {
+         "url" : "https://github.com/hatukanezumi/MIME-Charset.git"
+      }
+   },
+   "version" : "1.011.3"
+}

@@ -132,7 +132,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.011.2';
+$VERSION = '1.011.3';
 
 ######## Private Attributes ########
 
@@ -460,8 +460,7 @@ sub _find_encoder($$) {
 	foreach my $s (@{$spec}) {
 	    ($name, $module) = @{$s};
 	    if ($module) {
-		eval "use $module;";
-		next if $@;
+		next unless eval "require $module;";
 	    }
 	    $encoder = Encode::find_encoding($name);
 	    last if ref $encoder;
