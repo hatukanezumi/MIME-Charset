@@ -1,5 +1,6 @@
 #-*- perl -*-
 
+use lib '.';
 use inc::Module::Install;
 
 # Define metadata
