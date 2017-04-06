@@ -345,6 +345,8 @@ $Config = {
     Mapping =>         'EXTENDED',
     Replacement =>     'DEFAULT',
 };
+local @INC = @INC;
+pop @INC if $INC[-1] eq '.';
 eval { require MIME::Charset::Defaults; };
 
 ######## Private Constants ########
