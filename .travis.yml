@@ -20,6 +20,7 @@ before_install:
   - perl -V
 
 install:
-  - cpanm --notest --quiet Test::More
+  - cpanm --notest --quiet Test::More Test::Pod
   - cpanm --installdeps --notest --quiet .
+  - cpanm --notest --quiet Encode::EUCJPASCII
 
