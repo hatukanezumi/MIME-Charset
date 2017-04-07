@@ -132,7 +132,7 @@ if (USE_ENCODE) {
     }
 }
 
-$VERSION = '1.012';
+$VERSION = '1.012.1';
 
 ######## Private Attributes ########
 
@@ -1294,7 +1294,7 @@ Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006-2013 Hatuka*nezumi - IKEDA Soji.
+Copyright (C) 2006-2017 Hatuka*nezumi - IKEDA Soji.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 

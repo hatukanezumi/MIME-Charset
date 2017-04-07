@@ -1,5 +1,10 @@
 Revision history for Perl module MIME::Charset.
 
+1.012.1  2017-04-07  Hatuka*nezumi - IKEDA Soji  <hatuka(at)nezumi.nu>
+
+    * Fix: CPAN RT #116459: Remove "." from @INC when loading modules.
+      A workaround for CVE-2016-1238.
+
 1.012  2015-03-28  Hatuka*nezumi - IKEDA Soji  <hatuka(at)nezumi.nu>
 
     * CPAN RT #100839: Malformed JSON in META.json.
