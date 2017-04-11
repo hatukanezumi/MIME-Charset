@@ -1,5 +1,9 @@
 Revision history for Perl module MIME::Charset.
 
+1.012.2  2017-04-11  Hatuka*nezumi - IKEDA Soji  <hatuka(at)nezumi.nu>
+
+    * Fix: Perl >= 5.26: Makefile.PL cannot use inc::Module::Install.
+
 1.012.1  2017-04-07  Hatuka*nezumi - IKEDA Soji  <hatuka(at)nezumi.nu>
 
     * Fix: CPAN RT #116459: Remove "." from @INC when loading modules.
