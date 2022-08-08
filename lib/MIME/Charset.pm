@@ -142,6 +142,7 @@ my $FALLBACK_CHARSET = 'UTF-8';
 # This table was initially borrowed from Python email package.
 
 my %CHARSETS = (# input		    header enc body enc output conv
+		'DIN_66003' =>          ['Q',   undef,  undef],
 		'ISO-8859-1' =>		['Q',	'Q',	undef],
 		'ISO-8859-2' =>		['Q',	'Q',	undef],
 		'ISO-8859-3' =>		['Q',	'Q',	undef],
@@ -206,6 +207,7 @@ my %CHARSET_ALIASES = (# unpreferred		preferred
 		       "CP874" =>		"WINDOWS-874",
 		       "CP936" =>		"GBK",
 		       "CP949" =>		"KS_C_5601-1987",
+		       "DIN66003" =>		"DIN_66003",
 		       "EUC-CN" =>		"GB2312",
 		       "HZ" =>			"HZ-GB-2312", # RFC 1842
 		       "KS_C_5601" =>		"KS_C_5601-1987",
@@ -268,6 +270,7 @@ my %ENCODERS = (
 		    'UTF-8'      => [['utf8'], ],       # Special name on Perl
 		},
 		'STANDARD' => {
+		    'DIN_66003'     => [['din66003', 'Endode::DIN66003'], ],
 		    'ISO-8859-6-E'  => [['iso-8859-6'],],# Encode::Byte
 		    'ISO-8859-6-I'  => [['iso-8859-6'],],# ditto
 		    'ISO-8859-8-E'  => [['iso-8859-8'],],# Encode::Byte
@@ -324,6 +327,8 @@ my @ESCAPE_SEQS = (
 
 		# Singlebyte 7-bit sequences
 		   # escape seq, possible charset
+		   ["\033(K",   "DIN_66003"],   # ISO-IR-21
+		   ["\033)K",   "DIN_66003"],   # ditto
 		   ["\033e",	"GSM03.38"],	# ESTI GSM 03.38 (note*)
 		   ["\033\012",	"GSM03.38"],	# ditto
 		   ["\033<",	"GSM03.38"],	# ditto
