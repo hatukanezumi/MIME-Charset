@@ -327,8 +327,6 @@ my @ESCAPE_SEQS = (
 
 		# Singlebyte 7-bit sequences
 		   # escape seq, possible charset
-		   ["\033(K",   "DIN_66003"],   # ISO-IR-21
-		   ["\033)K",   "DIN_66003"],   # ditto
 		   ["\033e",	"GSM03.38"],	# ESTI GSM 03.38 (note*)
 		   ["\033\012",	"GSM03.38"],	# ditto
 		   ["\033<",	"GSM03.38"],	# ditto
