@@ -418,7 +418,7 @@ sub new {
 	$charset = "TIS-620";
     } elsif ($charset =~ /\biso[-_]8859[-_]8[-_]i$/i) {
 	# workaround: "ISO-8859-8-I" is treated as an alias of "ISO-8859-8"
-	# by Encode (3.18): See the note in
+	# by Encode (3.19): See the note in
 	# https://encoding.spec.whatwg.org/#legacy-single-byte-encodings
 	# However we'll treat these as separate names for compatibility.
 	$charset = "ISO-8859-8-I";
