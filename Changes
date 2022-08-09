@@ -1,5 +1,11 @@
 Revision history for Perl module MIME::Charset.
 
+1.013  2022-08-09  Hatuka*nezumi - IKEDA Soji  <hatuka(at)nezumi.nu>
+
+    * Update tests.
+    * A typo in comment: "3.18" should be "3.19".
+    * Fix: Escape sequences won't be used with DIN 66003.
+
 1.013_01  2022-08-08  Hatuka*nezumi - IKEDA Soji  <hatuka(at)nezumi.nu>
 
     * Imp: Added support for DIN 66003.
